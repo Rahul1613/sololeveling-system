@@ -1,0 +1,359 @@
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Grid,
+  Typography,
+  Button,
+  LinearProgress,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  IconButton,
+  Tab,
+  Tabs,
+  Chip
+} from '@mui/material';
+import {
+  Assignment as QuestIcon,
+  Visibility as ViewIcon,
+  Add as AddIcon,
+  People as ShadowIcon,
+  ArrowForward as ArrowIcon,
+  Leaderboard as LeaderboardIcon,
+  Notifications as NotificationIcon,
+  VolumeUp as VolumeIcon,
+  AutoFixHigh as SkillsIcon,
+  EmojiEvents as TitlesIcon
+} from '@mui/icons-material';
+
+// Import holographic UI components
+import { HolographicCard, StatusWindow } from '../components/HolographicUI';
+import { GlobalRanking } from '../components/Leaderboard';
+import SkillsPanel from '../components/skills/SkillsPanel';
+import SkillTree from '../components/skills/SkillTree';
+import TitlesPanel from '../components/titles/TitlesPanel';
+import voiceService from '../utils/voiceService';
+import { getStats, getProgress } from '../redux/slices/userSlice';
+import { getActiveQuests, getDailyQuests } from '../redux/slices/questSlice';
+import { getShadows } from '../redux/slices/shadowSlice';
+import { getFeaturedItems } from '../redux/slices/marketplaceSlice';
+import { fetchUserSkills, fetchSkillTree } from '../redux/slices/skillsSlice';
+import { fetchUserTitles } from '../redux/slices/titlesSlice';
+
+const Dashboard = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  const { user } = useSelector((state) => state.auth);
+  const { stats } = useSelector((state) => state.user);
+  const { activeQuests, dailyQuests } = useSelector((state) => state.quests);
+  const { shadows } = useSelector((state) => state.shadows);
+  const { featuredItems } = useSelector((state) => state.marketplace);
+  
+  // State for tab selection
+  const [tabValue, setTabValue] = useState(0);
+  
+  // Handle tab change
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+  
+  useEffect(() => {
+    dispatch(getStats());
+    dispatch(getProgress());
+    dispatch(getActiveQuests());
+    dispatch(getDailyQuests());
+    dispatch(getShadows());
+    dispatch(getFeaturedItems());
+    dispatch(fetchUserSkills());
+    dispatch(fetchUserTitles());
+    dispatch(fetchSkillTree());
+    
+    // Initialize voice service
+    voiceService.init();
+  }, [dispatch]);
+  
+  // Calculate experience percentage
+  const calculateExpPercentage = () => {
+    if (!stats) return 0;
+    return (stats.experience / stats.experienceToNextLevel) * 100;
+  };
+  
+  // Get rank color
+  const getRankColor = (rank) => {
+    switch (rank) {
+      case 'S':
+        return '#FFD700'; // Gold
+      case 'A':
+        return '#FF5733'; // Orange-Red
+      case 'B':
+        return '#9370DB'; // Medium Purple
+      case 'C':
+        return '#3498DB'; // Dodger Blue
+      case 'D':
+        return '#2ECC71'; // Emerald Green
+      case 'E':
+      default:
+        return '#95A5A6'; // Gray
+    }
+  };
+  
+  // Test voice announcement
+  const testVoiceAnnouncement = () => {
+    voiceService.announce('Welcome to the Solo Leveling System. You are now ready to begin your journey.', 2);
+  };
+  
+  return (
+    <Box sx={{ flexGrow: 1, p: 2 }}>
+      {/* Tabs for Dashboard Sections */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            '& .MuiTabs-indicator': {
+              backgroundColor: 'primary.main',
+              height: 3,
+              borderRadius: '3px 3px 0 0',
+            },
+          }}
+        >
+          <Tab label="Status" icon={<NotificationIcon />} iconPosition="start" />
+          <Tab label="Global Ranking" icon={<LeaderboardIcon />} iconPosition="start" />
+          <Tab label="Quests & Shadows" icon={<QuestIcon />} iconPosition="start" />
+          <Tab label="Skills" icon={<SkillsIcon />} iconPosition="start" />
+        </Tabs>
+      </Box>
+      
+      {/* Status Tab Panel */}
+      {tabValue === 0 && (
+        <Grid container spacing={3}>
+          {/* Status Window */}
+          <Grid item xs={12} md={4}>
+            {stats && (
+              <StatusWindow user={{
+                username: user?.username,
+                level: stats?.level,
+                rank: stats?.rank,
+                experience: stats?.experience,
+                experienceToNextLevel: stats?.experienceToNextLevel,
+                hp: stats?.hp,
+                mp: stats?.mp,
+                stats: stats?.stats,
+                statPoints: stats?.statPoints,
+                currency: user?.currency
+              }} />
+            )}
+            
+            {/* Voice Announcement Test Button */}
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Button
+                variant="outlined"
+                startIcon={<VolumeIcon />}
+                onClick={testVoiceAnnouncement}
+                size="small"
+              >
+                Test System Voice
+              </Button>
+            </Box>
+          </Grid>
+          
+          {/* Main Stats Card */}
+          <Grid item xs={12} md={8}>
+            <HolographicCard
+              title="Hunter Status"
+              height="auto"
+            >
+              <Grid container spacing={3}>
+                {/* User Info */}
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar
+                      alt={user?.username}
+                      src={user?.profilePicture}
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        mr: 2,
+                        border: '3px solid',
+                        borderColor: getRankColor(user?.rank),
+                      }}
+                    />
+                    <Box>
+                      <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                        {user?.username}
+                      </Typography>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          color: getRankColor(user?.rank),
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {user?.rank} Rank • Level {user?.level}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </HolographicCard>
+          </Grid>
+        </Grid>
+      )}
+      
+      {/* Global Ranking Tab Panel */}
+      {tabValue === 1 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <GlobalRanking currentUserId={user?._id} />
+          </Grid>
+        </Grid>
+      )}
+      
+      {/* Quests & Shadows Tab Panel */}
+      {tabValue === 2 && (
+        <Grid container spacing={3}>
+          {/* Active Quests */}
+          <Grid item xs={12} md={6}>
+            <HolographicCard title="Active Quests" height="auto">
+              {activeQuests && activeQuests.length > 0 ? (
+                <List>
+                  {activeQuests.map((quest) => (
+                    <ListItem 
+                      key={quest._id}
+                      sx={{
+                        mb: 1,
+                        p: 1,
+                        borderRadius: 1,
+                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                      }}
+                      secondaryAction={
+                        <IconButton edge="end" onClick={() => navigate(`/quests/${quest._id}`)}>
+                          <ArrowIcon />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'primary.main' }}>
+                          <QuestIcon />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText 
+                        primary={quest.title}
+                        secondary={
+                          <>
+                            <Typography variant="body2" component="span">
+                              {quest.description.substring(0, 60)}...
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                              <LinearProgress 
+                                variant="determinate" 
+                                value={(quest.progress / quest.completionThreshold) * 100} 
+                                sx={{ flexGrow: 1, mr: 1, height: 8, borderRadius: 4 }}
+                              />
+                              <Typography variant="caption">
+                                {quest.progress}/{quest.completionThreshold}
+                              </Typography>
+                            </Box>
+                          </>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Box sx={{ p: 2, textAlign: 'center' }}>
+                  <Typography variant="body1" color="text.secondary">
+                    No active quests. Visit the quest board to accept new quests.
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    startIcon={<QuestIcon />}
+                    sx={{ mt: 2 }}
+                    onClick={() => navigate('/quests')}
+                  >
+                    Quest Board
+                  </Button>
+                </Box>
+              )}
+            </HolographicCard>
+          </Grid>
+          
+          {/* Shadow Army */}
+          <Grid item xs={12} md={6}>
+            <HolographicCard title="Shadow Army" height="auto">
+              {shadows && shadows.length > 0 ? (
+                <List>
+                  {shadows.slice(0, 5).map((shadow) => (
+                    <ListItem 
+                      key={shadow._id}
+                      secondaryAction={
+                        <IconButton edge="end" onClick={() => navigate(`/shadows/${shadow._id}`)}>
+                          <ArrowIcon />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'grey.900', border: '1px solid #333' }}>
+                          <ShadowIcon />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText 
+                        primary={
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            {shadow.name} <Chip 
+                              label={`Rank ${shadow.rank}`} 
+                              size="small" 
+                              sx={{ ml: 1, height: 20 }}
+                            />
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2">
+                            Level {shadow.level} • {shadow.type}
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    No shadows in your army
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    sx={{ mt: 2 }}
+                    onClick={() => navigate('/shadows')}
+                  >
+                    Summon Shadow
+                  </Button>
+                </Box>
+              )}
+            </HolographicCard>
+          </Grid>
+        </Grid>
+      )}
+      
+      {/* Skills Tab Panel */}
+      {tabValue === 3 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <SkillTree />
+          </Grid>
+        </Grid>
+      )}
+    </Box>
+  );
+};
+
+export default Dashboard;

@@ -1,0 +1,118 @@
+/* Solo Leveling style notification system */
+.solo-leveling-notifications {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* Override react-toastify styles for Solo Leveling theme */
+.Toastify__toast-container {
+  z-index: 9999;
+}
+
+.Toastify__toast {
+  background-color: rgba(0, 0, 0, 0.85);
+  border: 1px solid #2a52be;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(42, 82, 190, 0.6);
+  padding: 0;
+  overflow: hidden;
+}
+
+.Toastify__toast--info {
+  border-color: #2a52be;
+  box-shadow: 0 0 10px rgba(42, 82, 190, 0.6);
+}
+
+.Toastify__toast--success {
+  border-color: #00c851;
+  box-shadow: 0 0 10px rgba(0, 200, 81, 0.6);
+}
+
+.Toastify__toast--warning {
+  border-color: #ffbb33;
+  box-shadow: 0 0 10px rgba(255, 187, 51, 0.6);
+}
+
+.Toastify__toast--error {
+  border-color: #ff4444;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
+}
+
+.Toastify__progress-bar {
+  height: 3px;
+  background: linear-gradient(to right, #2a52be, #00c8ff);
+}
+
+/* Voice announcement styles */
+.voice-announcement {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 9998;
+  color: white;
+  font-size: 14px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 8px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 300px;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+.voice-icon {
+  font-size: 16px;
+  color: #2a52be;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* Holographic effect for notifications */
+.holographic-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(42, 82, 190, 0.1) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(42, 82, 190, 0.1) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}

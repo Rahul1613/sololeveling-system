@@ -1,0 +1,238 @@
+/* Solo Leveling style shadow card */
+.shadow-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.shadow-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-color: rgba(42, 82, 190, 0.5);
+}
+
+.shadow-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(42, 82, 190, 0.05) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(42, 82, 190, 0.05) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.rank-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  z-index: 2;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.shadow-image-container {
+  position: relative;
+  padding-top: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.shadow-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shadow-type {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 5px 10px;
+  font-size: 12px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.shadow-card .card-body {
+  padding: 15px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.shadow-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.shadow-level {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #a0a0a0;
+  margin-bottom: 15px;
+}
+
+.shadow-rank-badge {
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shadow-stats {
+  margin-bottom: 15px;
+}
+
+.stat-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stat-icon {
+  width: 20px;
+  text-align: center;
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+.stat-progress {
+  flex-grow: 1;
+  position: relative;
+}
+
+.stat-value {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+}
+
+.hp-progress {
+  height: 20px;
+  background-color: rgba(255, 68, 68, 0.2);
+}
+
+.hp-progress .progress-bar {
+  background-color: #ff4444;
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+}
+
+.mp-progress {
+  height: 20px;
+  background-color: rgba(0, 200, 255, 0.2);
+}
+
+.mp-progress .progress-bar {
+  background-color: #00c8ff;
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+}
+
+.xp-progress {
+  height: 20px;
+  background-color: rgba(0, 200, 81, 0.2);
+}
+
+.xp-progress .progress-bar {
+  background-color: #00c851;
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+}
+
+.shadow-attributes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attribute {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.attribute-icon {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.attribute-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.attribute-icon.strength {
+  color: #ff4444;
+}
+
+.attribute-icon.agility {
+  color: #1eff00;
+}
+
+.attribute-icon.intelligence {
+  color: #00c8ff;
+}
+
+.attribute-icon.vitality {
+  color: #ff8000;
+}
+
+.attribute-icon.endurance {
+  color: #a335ee;
+}
+
+.deployed-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 200, 81, 0.8);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  z-index: 2;
+}

@@ -1,0 +1,146 @@
+/* Solo Leveling style notification toast */
+.notification-toast {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  color: white;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-toast::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #2a52be, transparent);
+  z-index: 2;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification-icon {
+  font-size: 18px;
+  margin-right: 10px;
+  color: #2a52be;
+}
+
+.notification-icon.achievement {
+  color: #ffd700;
+}
+
+.notification-icon.level {
+  color: #00c8ff;
+}
+
+.notification-icon.rank {
+  color: #ff5e00;
+}
+
+.notification-icon.quest {
+  color: #a335ee;
+}
+
+.notification-icon.penalty {
+  color: #ff4444;
+}
+
+.notification-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.notification-body {
+  padding: 10px 15px;
+  font-size: 14px;
+}
+
+.notification-body p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Style variants based on notification type */
+.notification-toast.success .notification-header {
+  border-bottom-color: rgba(0, 200, 81, 0.3);
+}
+
+.notification-toast.success::before {
+  background: linear-gradient(to right, transparent, #00c851, transparent);
+}
+
+.notification-toast.warning .notification-header {
+  border-bottom-color: rgba(255, 187, 51, 0.3);
+}
+
+.notification-toast.warning::before {
+  background: linear-gradient(to right, transparent, #ffbb33, transparent);
+}
+
+.notification-toast.danger .notification-header {
+  border-bottom-color: rgba(255, 68, 68, 0.3);
+}
+
+.notification-toast.danger::before {
+  background: linear-gradient(to right, transparent, #ff4444, transparent);
+}
+
+.notification-toast.quest .notification-header {
+  border-bottom-color: rgba(163, 53, 238, 0.3);
+}
+
+.notification-toast.quest::before {
+  background: linear-gradient(to right, transparent, #a335ee, transparent);
+}
+
+.notification-toast.achievement .notification-header {
+  border-bottom-color: rgba(255, 215, 0, 0.3);
+}
+
+.notification-toast.achievement::before {
+  background: linear-gradient(to right, transparent, #ffd700, transparent);
+}
+
+.notification-toast.level .notification-header {
+  border-bottom-color: rgba(0, 200, 255, 0.3);
+}
+
+.notification-toast.level::before {
+  background: linear-gradient(to right, transparent, #00c8ff, transparent);
+}
+
+.notification-toast.rank .notification-header {
+  border-bottom-color: rgba(255, 94, 0, 0.3);
+}
+
+.notification-toast.rank::before {
+  background: linear-gradient(to right, transparent, #ff5e00, transparent);
+}
+
+/* Holographic effect */
+.notification-toast::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}

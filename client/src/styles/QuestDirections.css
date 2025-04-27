@@ -1,0 +1,189 @@
+.quest-directions-container {
+  background: linear-gradient(135deg, #1a3a5f 0%, #0c1e2f 100%) !important;
+  color: white;
+  border-radius: 8px !important;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid rgba(78, 175, 233, 0.3) !important;
+}
+
+.quest-directions-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, transparent 20%, rgba(0, 0, 0, 0.1) 70%);
+  background-size: 10px 10px;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.quest-directions-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.quest-directions-icon {
+  margin-right: 8px;
+  color: #4eafe9;
+}
+
+.quest-directions-title {
+  font-weight: 600 !important;
+  color: #4eafe9 !important;
+  letter-spacing: 1px;
+  font-family: 'Rajdhani', sans-serif !important;
+}
+
+.quest-divider {
+  background-color: rgba(78, 175, 233, 0.3) !important;
+  height: 2px !important;
+  margin: 0 !important;
+}
+
+.quest-content {
+  padding: 16px;
+  position: relative;
+}
+
+.quest-type {
+  font-weight: 600 !important;
+  margin-bottom: 20px !important;
+  color: white !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  letter-spacing: 0.5px;
+}
+
+.quest-goal-section {
+  margin-bottom: 20px;
+}
+
+.goal-header {
+  color: #4ecd79 !important;
+  font-weight: 600 !important;
+  margin-bottom: 12px !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  letter-spacing: 1px;
+}
+
+.goal-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.goal-name {
+  font-weight: 500 !important;
+  color: white !important;
+  flex: 1;
+  font-family: 'Rajdhani', sans-serif !important;
+}
+
+.goal-icon {
+  color: white;
+  font-size: 18px !important;
+  margin: 0 8px;
+  cursor: pointer;
+}
+
+.goal-progress {
+  font-weight: 500 !important;
+  color: white !important;
+  font-family: 'Rajdhani', sans-serif !important;
+}
+
+.quest-warning {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: rgba(255, 50, 50, 0.2);
+  border-radius: 4px;
+}
+
+.warning-text {
+  color: #ff5050 !important;
+  font-weight: 500 !important;
+  text-align: center;
+  font-family: 'Rajdhani', sans-serif !important;
+  font-size: 14px !important;
+}
+
+.quest-timer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.timer-icon {
+  font-size: 32px !important;
+  color: white;
+}
+
+/* Animation for the timer */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.timer-icon {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@media (max-width: 600px) {
+  .quest-directions-container {
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    width: 98vw !important;
+    margin: 0 auto !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 2vw 2vw 2vw !important;
+  }
+  .quest-content {
+    padding: 10px 0 !important;
+  }
+  .goal-item {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+    justify-content: flex-start !important;
+  }
+  .goal-name {
+    min-width: 80px !important;
+    font-size: 1rem !important;
+  }
+  .goal-header {
+    font-size: 1.1rem !important;
+  }
+  .goal-progress, .goal-item input, .goal-item .MuiTextField-root {
+    font-size: 0.98rem !important;
+    min-width: 45px !important;
+    max-width: 70px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  .MuiButton-root, .MuiIconButton-root {
+    min-width: 32px !important;
+    min-height: 32px !important;
+    font-size: 1.1rem !important;
+  }
+  .quest-directions-header {
+    padding: 10px 6px !important;
+  }
+  .quest-divider {
+    margin: 0 !important;
+  }
+  .quest-warning {
+    font-size: 0.9rem !important;
+    padding: 6px 0;
+  }
+}

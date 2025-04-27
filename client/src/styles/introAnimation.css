@@ -1,0 +1,258 @@
+/* Import Rajdhani font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
+
+.intro-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Rajdhani', sans-serif;
+    z-index: 9999; /* Ensure it's above everything else */
+    transition: opacity 1s ease;
+}
+
+.arise-text {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, 'Rajdhani';
+    font-size: 8rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 10px #4a90e2, 0 0 20px #4a90e2;
+    opacity: 0;
+    transform: scale(0.5);
+    animation: ariseAppear 1s ease-out forwards;
+    position: relative;
+    z-index: 2;
+}
+
+.portal {
+    position: absolute;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, #2a0845 0%, transparent 70%);
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+}
+
+.portal.active {
+    animation: portalOpen 2s ease-out forwards;
+}
+
+.shadow-figure {
+    position: absolute;
+    width: 300px;
+    height: 500px;
+    background: linear-gradient(to bottom, transparent, #000);
+    clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+    opacity: 0;
+    z-index: 1;
+}
+
+.shadow-figure.active {
+    animation: figureAppear 1.5s ease-out forwards;
+}
+
+.eyes {
+    position: absolute;
+    width: 200px;
+    height: 50px;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    opacity: 0;
+}
+
+.eye {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #ff0000;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+}
+
+.eye:first-child {
+    left: 50px;
+}
+
+.eye:last-child {
+    right: 50px;
+}
+
+.eyes.active {
+    animation: eyesGlow 2s ease-out forwards;
+}
+
+.lightning {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+}
+
+.lightning.active {
+    animation: lightningFlash 1.5s ease-out forwards;
+}
+
+.ripple {
+    position: absolute;
+    border: 2px solid rgba(74, 144, 226, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+}
+
+.shadow-wave {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, transparent 0%, rgba(0,0,0,0.95) 100%);
+    opacity: 0;
+    transform: scale(0);
+    pointer-events: none;
+    z-index: 4;
+}
+
+@keyframes ariseAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        text-shadow: 0 0 20px #4a90e2, 0 0 40px #4a90e2;
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        text-shadow: 0 0 30px #4a90e2, 0 0 60px #4a90e2;
+    }
+}
+
+@keyframes portalOpen {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+    50% {
+        width: 1000px;
+        height: 1000px;
+        opacity: 0.8;
+    }
+    100% {
+        width: 1200px;
+        height: 1200px;
+        opacity: 0;
+    }
+}
+
+@keyframes figureAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.8);
+    }
+    50% {
+        opacity: 0.6;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(1.1);
+    }
+}
+
+@keyframes eyesGlow {
+    0% {
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes lightningFlash {
+    0% {
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.8;
+    }
+    20% {
+        opacity: 0;
+    }
+    30% {
+        opacity: 0.6;
+    }
+    40% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes shadowWave {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(3);
+    }
+}
+
+.lightning-bolt {
+    position: absolute;
+    background: linear-gradient(to bottom, #9742ff, #4a90e2);
+    width: 3px;
+    height: 100px;
+    clip-path: polygon(
+        50% 0%, 45% 40%, 60% 50%,
+        40% 60%, 55% 70%, 45% 100%,
+        55% 100%, 50% 80%, 65% 70%,
+        45% 50%, 60% 40%, 50% 0%
+    );
+    opacity: 0;
+    filter: blur(1px);
+}
+
+.glow-effect {
+    animation: glowPulse 2s infinite;
+}
+
+@keyframes glowPulse {
+    0% {
+        text-shadow: 0 0 10px #4a90e2, 0 0 20px #4a90e2;
+    }
+    50% {
+        text-shadow: 0 0 20px #4a90e2, 0 0 40px #4a90e2, 0 0 60px #4a90e2;
+    }
+    100% {
+        text-shadow: 0 0 10px #4a90e2, 0 0 20px #4a90e2;
+    }
+}

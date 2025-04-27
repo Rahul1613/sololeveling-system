@@ -1,0 +1,440 @@
+/* Solo Leveling style modal designs */
+.solo-leveling-modal .modal-content {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 2px solid #2a52be;
+  border-radius: 8px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(42, 82, 190, 0.6);
+}
+
+.modal-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(42, 82, 190, 0.15) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.quest-glow {
+  background: radial-gradient(
+    circle at center,
+    rgba(163, 53, 238, 0.15) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+}
+
+.rank-glow {
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 94, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+}
+
+/* Modal Header */
+.solo-leveling-modal .modal-header {
+  border-bottom: 1px solid rgba(42, 82, 190, 0.5);
+  padding: 15px 20px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.solo-leveling-modal .modal-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 24px;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(42, 82, 190, 0.8);
+}
+
+/* Modal Body */
+.solo-leveling-modal .modal-body {
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Modal Footer */
+.solo-leveling-modal .modal-footer {
+  border-top: 1px solid rgba(42, 82, 190, 0.5);
+  padding: 15px 20px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Solo Button Style */
+.solo-btn {
+  background-color: #2a52be;
+  border: none;
+  color: white;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 8px 20px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.solo-btn:hover {
+  background-color: #3a62ce;
+  box-shadow: 0 0 15px rgba(42, 82, 190, 0.8);
+}
+
+.solo-btn:active {
+  transform: scale(0.98);
+}
+
+.solo-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+.confirm-btn {
+  min-width: 120px;
+}
+
+/* Level Up Modal Specific Styles */
+.level-up-modal .level-announcement {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.level-up-modal .level-announcement h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #00c8ff;
+  text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+}
+
+.level-stars {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.level-star {
+  color: #ffd700;
+  font-size: 24px;
+  margin: 0 5px;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.7));
+}
+
+.level-icon {
+  color: #00c8ff;
+}
+
+.stat-allocation-section {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(42, 82, 190, 0.3);
+  border-radius: 6px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.stat-allocation-section h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-name {
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.stat-controls {
+  display: flex;
+  align-items: center;
+}
+
+.stat-value {
+  width: 30px;
+  text-align: center;
+  font-weight: 700;
+  color: #00c8ff;
+}
+
+.stat-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(42, 82, 190, 0.3);
+  border: 1px solid rgba(42, 82, 190, 0.5);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stat-btn:hover:not(:disabled) {
+  background-color: rgba(42, 82, 190, 0.5);
+}
+
+.stat-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Confetti animation */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #f00;
+  top: -10px;
+  animation: fall 3s linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
+/* Quest Completed Modal Specific Styles */
+.quest-completed-modal .quest-announcement {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.quest-completed-modal .quest-announcement h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #a335ee;
+  text-shadow: 0 0 10px rgba(163, 53, 238, 0.5);
+}
+
+.quest-description {
+  font-size: 16px;
+  color: #e0e0e0;
+}
+
+.quest-icon {
+  color: #a335ee;
+}
+
+.rewards-section {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(163, 53, 238, 0.3);
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.rewards-section h4 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.rewards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reward-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  font-size: 18px;
+}
+
+.reward-icon.xp {
+  background-color: rgba(0, 200, 255, 0.2);
+  color: #00c8ff;
+  border: 1px solid rgba(0, 200, 255, 0.5);
+}
+
+.reward-icon.currency {
+  background-color: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+.reward-icon.stats {
+  background-color: rgba(163, 53, 238, 0.2);
+  color: #a335ee;
+  border: 1px solid rgba(163, 53, 238, 0.5);
+}
+
+.reward-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.reward-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.reward-label {
+  font-size: 14px;
+  color: #a0a0a0;
+}
+
+/* Rank Up Modal Specific Styles */
+.rank-up-modal .rank-announcement {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.rank-up-modal .rank-announcement h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #ff5e00;
+  text-shadow: 0 0 10px rgba(255, 94, 0, 0.5);
+}
+
+.rank-icon {
+  color: #ff5e00;
+}
+
+.rank-display {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.5s ease-out;
+}
+
+.rank-display.animate {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.rank-medal {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.medal-icon {
+  position: absolute;
+  font-size: 120px;
+  color: #ffd700;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+}
+
+.rank-letter {
+  position: relative;
+  font-size: 60px;
+  font-weight: 800;
+  z-index: 1;
+}
+
+.rank-description {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.rank-description p {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.rank-benefits {
+  font-size: 16px;
+  color: #a0a0a0;
+  font-style: italic;
+}
+
+/* Rank medal colors */
+.rank-medal-s .medal-icon {
+  color: #ff5e00;
+  filter: drop-shadow(0 0 10px rgba(255, 94, 0, 0.7));
+}
+
+.rank-medal-a .medal-icon {
+  color: #ff0000;
+  filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.7));
+}
+
+.rank-medal-b .medal-icon {
+  color: #a335ee;
+  filter: drop-shadow(0 0 10px rgba(163, 53, 238, 0.7));
+}
+
+.rank-medal-c .medal-icon {
+  color: #0070dd;
+  filter: drop-shadow(0 0 10px rgba(0, 112, 221, 0.7));
+}
+
+.rank-medal-d .medal-icon {
+  color: #1eff00;
+  filter: drop-shadow(0 0 10px rgba(30, 255, 0, 0.7));
+}
+
+.rank-medal-e .medal-icon {
+  color: #9d9d9d;
+  filter: drop-shadow(0 0 10px rgba(157, 157, 157, 0.7));
+}

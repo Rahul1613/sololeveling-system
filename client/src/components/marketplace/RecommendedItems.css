@@ -1,0 +1,22 @@
+.recommended-items-section {
+  margin-top: 36px;
+  margin-bottom: 36px;
+  padding: 28px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #232526 0%, #1c92d2 100%);
+  box-shadow: 0 0 24px 6px #00ffe7, 0 0 60px 10px #2a52be33;
+}
+
+.recommended-title {
+  color: #00ffe7;
+  text-shadow: 0 0 8px #003c47;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.recommended-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}

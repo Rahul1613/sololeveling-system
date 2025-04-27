@@ -1,0 +1,212 @@
+/* Solo Leveling style fitness verification page */
+.fitness-verification-page {
+  padding: 30px 0;
+  color: white;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 10px;
+  color: #a335ee;
+  text-shadow: 0 0 10px rgba(163, 53, 238, 0.5);
+  position: relative;
+  display: inline-block;
+}
+
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, #a335ee, transparent);
+}
+
+.back-button {
+  margin-bottom: 20px;
+  border-color: rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Loading spinner */
+.solo-spinner {
+  color: #2a52be;
+  width: 50px;
+  height: 50px;
+}
+
+/* Error card */
+.error-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid #ff4444;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.error-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #ff4444, transparent);
+  z-index: 2;
+}
+
+.error-icon {
+  font-size: 48px;
+  color: #ff4444;
+}
+
+/* Success card */
+.success-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid #00c851;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 200, 81, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.success-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #00c851, transparent);
+  z-index: 2;
+}
+
+.success-icon {
+  font-size: 48px;
+  color: #00c851;
+}
+
+/* Quest rewards card */
+.quest-rewards-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid #a335ee;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(163, 53, 238, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.quest-rewards-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #a335ee, transparent);
+  z-index: 2;
+}
+
+.quest-rewards-card .card-header {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(163, 53, 238, 0.5);
+  padding: 15px 20px;
+}
+
+.quest-rewards-card .card-header h5 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.quest-rewards-card .card-body {
+  padding: 15px;
+}
+
+.reward-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reward-label {
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.reward-value {
+  font-weight: 700;
+  color: #a335ee;
+}
+
+.reward-section {
+  margin-top: 15px;
+}
+
+.reward-section h6 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 5px;
+}
+
+/* Solo button style */
+.solo-btn {
+  background-color: #2a52be;
+  border: none;
+  color: white;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 8px 20px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.solo-btn:hover {
+  background-color: #3a62ce;
+  box-shadow: 0 0 15px rgba(42, 82, 190, 0.8);
+}
+
+.solo-btn:active {
+  transform: scale(0.98);
+}
+
+.solo-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .page-title {
+    font-size: 28px;
+  }
+}

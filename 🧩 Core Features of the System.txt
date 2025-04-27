@@ -1,0 +1,371 @@
+🧩 Core Features of the System
+Status Window
+
+Shows stats like Strength, Agility, Vitality, Intelligence, and Sense.
+
+Also shows HP, MP, level, and equipment.
+
+Leveling Up
+
+Jin-Woo can gain experience points (XP) and level up.
+
+Only he can level up infinitely—no other hunter can.
+
+Stat Points
+
+Every time he levels up, he earns points to upgrade his stats manually.
+
+Inventory
+
+Stores weapons, potions, quest items, etc.
+
+Accessible at any time like in a game.
+
+Quest System
+
+Daily quests and emergency quests.
+
+Rewards include stat boosts, skill unlocks, and items.
+
+Failure results in punishments (e.g., getting sent to a penalty zone).
+
+Skills & Abilities
+
+Skills are earned through leveling, quests, or battles.
+
+Includes healing, stealth, speed boosts, etc.
+
+Store (Item Shop)
+
+Buy potions, weapons, and other items using coins earned from kills and quests.
+
+Titles
+
+Earned by achieving special feats.
+
+Give bonus stats (e.g., "Wolf Slayer" increases attack against beasts).
+
+Shadow Extraction
+
+After inheriting the Shadow Monarch's power, Jin-Woo can turn dead enemies into shadow soldiers.
+
+This became his strongest feature.
+
+Shadow Army Management
+
+Can name, rank up, and manage shadows.
+
+Special shadows (like Igris, Beru, etc.) have unique powers.
+
+Penalty Zone
+
+If Jin-Woo ignores daily quests, he’s forcibly teleported to a dangerous area and must survive to return.
+
+System Messages
+
+Floating blue text windows only visible to him.
+
+Give real-time updates, warnings, or quest results.
+
+Key Items
+
+Special items drop from bosses or quests that unlock new powers or dungeons.
+
+Dungeon Key Generation
+
+Can receive keys to random dungeons through the system.
+
+Job Advancement Quests
+
+At certain levels, Jin-Woo gets quests to evolve his class or gain special titles.
+
+Hidden Stats & Unlocks
+
+The system hides certain stats or limits until he grows stronger (e.g., Shadow Monarch awakening).
+
+1. User Registration & Authentication
+Sign up, login, and secure sessions.
+
+Optional: Social login (Google, Instagram, Discord).
+
+🧑‍🤝‍🧑 2. Multiple Users (Player System)
+Each user has their own:
+
+Level
+
+Stats
+
+Inventory
+
+Skills
+
+Quests
+
+Shadow army (if you're gamifying it)
+
+🔐 3. Admin Dashboard
+Manage users.
+
+Create/edit quests.
+
+Monitor user activity.
+
+Reward or ban users.
+
+⚔️ 4. PvE and PvP Elements (Optional)
+Users can battle AI (PvE) or other users (PvP).
+
+Use stats to determine outcomes.
+
+📈 5. Leaderboard / Rankings
+Show top players by level, power, number of completed quests, shadow army strength, etc.
+
+📋 6. Dynamic Quests
+Daily, weekly, and special events.
+
+Auto-assigned based on user progress or manually created by admin.
+
+🧠 7. Skill Tree / Progression System
+Unlockable skill paths based on user choices or completed quests.
+
+Example: Stealth path vs. Tank path.
+
+🎨 8. Customizable Avatars or Player Profiles
+Users can upload images or pick avatars.
+
+Add status messages, theme colors, or even a bio.
+
+🛡️ 9. Guild or Team System
+Users can form guilds.
+
+Guild quests, rankings, and battles.
+
+🔊 10. Notifications & Reminders
+Push or in-app alerts for:
+
+Daily quests available
+
+Shadow training ready
+
+Challenges from other players
+
+Level up events
+
+🎥 11. Proof-based Quest Completion (Optional)
+Users must upload video or photo proof to complete certain quests.
+
+Use AI to verify the proof (e.g., for fitness or training systems).
+
+📊 12. Analytics Panel
+Track user progress over time.
+
+Useful for fitness, learning, or productivity goals.
+
+💬 13. Chat System (Global / Guild / PvP DM)
+In-app communication between users.
+
+Optional moderation tools.
+
+🎯 14. Achievements / Badges
+Milestones for completing rare quests, reaching level 50+, summoning rare shadows, etc.
+1. Video Proof (With AI Validation)
+User uploads video of themselves completing the task.
+
+Use AI models (like PoseNet, OpenPose, Mediapipe) to verify:
+
+Correct body movement
+
+Duration of the action
+
+Repetitions/form
+
+Example: Fitness quests like "30 pushups" or "2 min plank"
+
+🔧 Advanced: Add watermark or timestamp requirement to avoid fake/pre-recorded videos.
+
+📸 2. Photo Proof with Metadata
+Require a photo upload with:
+
+Visible timestamp or screen shown
+
+Specific action (like open book, gym machine, code editor)
+
+Location metadata (optional)
+
+Use image recognition to verify content (e.g., yoga pose, classroom environment)
+
+📍 3. GPS Location Check
+Require users to check-in at a specific location.
+
+Useful for quests like:
+
+“Go to gym”
+
+“Attend training at center”
+
+Combine with QR code scan at location for extra security.
+
+⏱️ 4. Real-Time Webcam Verification
+User joins a live verification session.
+
+Could be:
+
+AI-analyzed in real-time
+
+Moderator-reviewed (like a judge checking challenge)
+
+📄 5. Task-Based Quiz or Prompt
+After claiming they finished a quest (like studying or watching a lecture), give a mini quiz.
+
+Must pass it to earn rewards.
+
+Great for:
+
+Study quests
+
+Learning/Skill-development missions
+
+🤖 6. Device Usage Tracking
+For tech-based quests (like coding), track:
+
+Time spent in an IDE
+
+Commits on GitHub
+
+Screenshots of IDE with timestamps
+
+📅 7. Streaks and Historical Behavior
+Use behavioral patterns to assess authenticity:
+
+Long active streaks = more trusted
+
+Sudden “task dump” raises suspicion
+
+Introduce “Trust Level” or “Reputation Score” for users
+
+🎤 8. Voice/Face Verification
+For reflection tasks or logs, ask users to speak to the camera.
+
+Voice + face detection ensures it’s really them.
+
+Combine with natural language processing to analyze what they say.
+
+💡 Bonus: Punishment or Penalty Zones
+Just like the original system — if someone fails to prove they completed a task:
+
+Send them to a penalty quest
+
+Lock XP or shadow upgrades
+
+Add cooldowns before trying again
+🛒 1. Marketplace
+Users can buy/sell items:
+
+Weapons, potions, equipment, etc.
+
+Rare items, Shadow soldiers, and special artifacts.
+
+User-to-user transactions for customization and upgrades.
+
+Currency: Coins earned through tasks, quests, PvP, or leaderboard performance.
+
+🎮 2. PvP (Player vs Player) Arena
+PvP Tournaments: Users can battle each other in special arenas.
+
+Matchmaking: Based on levels, skills, or shadow army strength.
+
+Rewards: Winner gets exclusive items, titles, or coins.
+
+Ranking: PvP rankings based on victories, win rate, or overall strength.
+
+🎁 3. Reward System
+Loot Boxes: Random rewards (XP, rare items, skins, etc.) based on user activity.
+
+Achievements: Unlock badges for reaching milestones or completing hard quests.
+
+Event Rewards: Special quests or challenges that give extra bonuses.
+
+🌍 4. World Events and Global Challenges
+Timed Global Events: Everyone participates in a large-scale event (e.g., defeating a boss monster or completing community-wide tasks).
+
+Global Leaderboards: Track who’s contributing the most to these events.
+
+Cross-User Interactions: Players can team up globally to tackle these challenges.
+
+💬 5. Community Features
+Forum or Chat Rooms: Users can discuss strategies, quests, and tips.
+
+Group Challenges: Form teams or guilds to take on special team-based tasks.
+
+User-Generated Content: Allow users to create and share quests, challenges, or mini-games.
+
+Mentorship: Higher-level users can mentor newer users, helping them progress.
+
+🧑‍🔬 6. Skill Tree and Special Abilities
+Specialized Paths: Users can choose different classes or paths for their progression:
+
+Warrior, Mage, Healer, Ranger, etc.
+
+Each path unlocks unique skills and stat growth.
+
+Unlock Hidden Abilities: As users level up, they can unlock special abilities or hidden stats based on their choices.
+
+Ability Customization: Users can reconfigure their abilities or stats using in-game resources.
+
+🧩 7. Dynamic NPC Interactions
+Quests from NPCs: Non-playable characters that offer special, lore-based quests or challenges.
+
+Dialogue-based Choices: Players make choices that affect their progression or unlock new paths.
+
+Story Progression: As users progress, unlock new NPCs or areas to explore.
+
+🛠️ 8. Item Crafting System
+Combine Items: Craft special equipment or potions from resources.
+
+Special Recipes: Discover hidden recipes through quests or challenges.
+
+Item Upgrades: Enhance items with rare materials or experiences.
+
+🧠 9. AI Integration
+AI Trainer/Companion: An AI assistant that helps users with tips, task completion strategies, and training advice.
+
+Dynamic Difficulty Adjustment: The system adapts quest difficulty based on user performance.
+
+Personalized Feedback: AI gives feedback based on user actions (like improving fitness or learning goals).
+
+🧑‍💻 10. Developer/Creator Mode (For Admins/Power Users)
+Custom Content Creation: Allow admins or power users to create their own quests, challenges, and even NPCs.
+
+Test Quests/Features: Users can test new game mechanics or quests before they’re fully launched to all users.
+
+🔄 11. Real-World Integration
+Fitness Tracking Integration: Sync data with fitness trackers (e.g., Fitbit, Apple Health) to automatically validate fitness tasks.
+
+Learning Integration: Link with online learning platforms (e.g., Coursera, Udemy) to verify completed courses or lessons.
+
+Geo-Location: Tie quests to real-world locations or activities (e.g., scavenger hunts, location-based tasks).
+
+🗡️ 12. Boss Fights & Raids
+Guild Boss Battles: Teams of users can fight massive bosses with special rewards.
+
+Special Boss Events: Timed or special one-off boss events that challenge the entire player base.
+
+Loot Drops: Rare items dropped only by these bosses or raids.
+
+🔒 13. Privacy & Security Features
+Two-Factor Authentication (2FA): For user security during login.
+
+Privacy Controls: Users can manage who sees their progress, quests, or achievements.
+
+Anti-Cheat System: Ensure no users can fake quest completions or engage in unfair practices.
+
+📅 14. Scheduled/Timed Events
+Limited-Time Quests: Quests that are only available for a short period, increasing urgency.
+
+Seasonal Events: Tie in with holidays, seasons, or special events (e.g., "Winter Event," "Halloween Challenge").
+
+🗳️ 15. Voting & Polling
+Community Votes: Let the community vote on new quests, features, or updates.
+
+Player Choices: Let players vote for changes or events they want to see implemented.
+

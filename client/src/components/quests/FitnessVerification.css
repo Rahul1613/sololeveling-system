@@ -1,0 +1,272 @@
+/* Solo Leveling style fitness verification component */
+.fitness-verification-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid #2a52be;
+  border-radius: 8px;
+  color: white;
+  box-shadow: 0 0 15px rgba(42, 82, 190, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.fitness-verification-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #2a52be, transparent);
+  z-index: 2;
+}
+
+.fitness-verification-card .card-header {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(42, 82, 190, 0.5);
+  padding: 15px 20px;
+}
+
+.fitness-verification-card .card-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.fitness-verification-card .card-body {
+  padding: 20px;
+  position: relative;
+}
+
+/* Quest info section */
+.quest-info {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.quest-info h5 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #a335ee;
+  margin-bottom: 10px;
+}
+
+.quest-description {
+  font-size: 14px;
+  color: #e0e0e0;
+  margin-bottom: 15px;
+}
+
+/* Fitness details */
+.fitness-details {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(42, 82, 190, 0.3);
+  border-radius: 6px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.fitness-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: #a0a0a0;
+  margin-bottom: 3px;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Submission type selector */
+.submission-type-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.submission-type-option {
+  flex: 1;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submission-type-option:hover {
+  background-color: rgba(42, 82, 190, 0.2);
+  border-color: rgba(42, 82, 190, 0.5);
+}
+
+.submission-type-option.active {
+  background-color: rgba(42, 82, 190, 0.3);
+  border-color: #2a52be;
+  box-shadow: 0 0 10px rgba(42, 82, 190, 0.4);
+}
+
+.submission-type-option svg {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #e0e0e0;
+}
+
+.submission-type-option.active svg {
+  color: #2a52be;
+}
+
+.submission-type-option span {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Media upload */
+.media-upload-container {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.upload-placeholder {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 2px dashed rgba(42, 82, 190, 0.5);
+  border-radius: 6px;
+  padding: 30px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-placeholder:hover {
+  background-color: rgba(42, 82, 190, 0.1);
+  border-color: #2a52be;
+}
+
+.upload-icon {
+  font-size: 36px;
+  color: #2a52be;
+  margin-bottom: 10px;
+}
+
+.upload-placeholder p {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.upload-placeholder small {
+  font-size: 12px;
+  color: #a0a0a0;
+}
+
+.media-preview {
+  position: relative;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.media-preview video,
+.media-preview img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  display: block;
+}
+
+.remove-media-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  opacity: 0.8;
+}
+
+/* GPS location */
+.gps-container {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(42, 82, 190, 0.3);
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.get-location-btn {
+  width: 100%;
+  padding: 12px;
+}
+
+.gps-data {
+  padding: 10px;
+}
+
+.gps-data p {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* Verification success */
+.verification-success {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.verification-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.success-icon {
+  color: #00c851;
+}
+
+.rejected-icon {
+  color: #ff4444;
+}
+
+.verification-success h4 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.verification-success p {
+  font-size: 16px;
+  color: #e0e0e0;
+  margin-bottom: 20px;
+}
+
+/* Submit button */
+.submit-verification-btn {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Holographic effect */
+.fitness-verification-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(42, 82, 190, 0.05) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(42, 82, 190, 0.05) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}

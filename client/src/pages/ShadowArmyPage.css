@@ -1,0 +1,427 @@
+/* Solo Leveling style shadow army page */
+.shadow-army-page {
+  padding: 30px 0;
+  color: white;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2a52be;
+  text-shadow: 0 0 10px rgba(42, 82, 190, 0.5);
+  position: relative;
+  display: inline-block;
+  margin: 0;
+}
+
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, #2a52be, transparent);
+}
+
+.page-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.tab-btn {
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  box-shadow: 0 0 10px rgba(42, 82, 190, 0.6);
+}
+
+/* Filter card */
+.filter-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid #2a52be;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(42, 82, 190, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.filter-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #2a52be, transparent);
+  z-index: 2;
+}
+
+.filter-card .card-body {
+  padding: 20px;
+}
+
+.deployed-switch {
+  margin-top: 8px;
+}
+
+.reset-filters-btn {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.reset-filters-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Shadows container */
+.shadows-container {
+  margin-top: 20px;
+}
+
+.no-shadows-message {
+  text-align: center;
+  padding: 50px 0;
+  color: #a0a0a0;
+}
+
+.no-shadows-message svg {
+  font-size: 48px;
+  color: #a0a0a0;
+  margin-bottom: 15px;
+}
+
+/* Sidebar */
+.shadow-army-sidebar {
+  position: sticky;
+  top: 20px;
+}
+
+/* Army stats card */
+.army-stats-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid #2a52be;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(42, 82, 190, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.army-stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #2a52be, transparent);
+  z-index: 2;
+}
+
+.army-stats-card .card-header {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(42, 82, 190, 0.5);
+  padding: 15px;
+}
+
+.army-stats-card .card-header h5 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.army-stats-card .card-body {
+  padding: 15px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-label {
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.rank-distribution {
+  margin-top: 20px;
+}
+
+.rank-distribution h6 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.rank-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rank-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rank-label {
+  width: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.rank-progress {
+  flex-grow: 1;
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.rank-progress-fill {
+  height: 100%;
+  border-radius: 5px;
+}
+
+.rank-count {
+  width: 30px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.type-distribution {
+  margin-top: 20px;
+}
+
+.type-distribution h6 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.type-chart {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.type-item {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.type-name {
+  text-transform: capitalize;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.type-count {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Army power card */
+.army-power-card {
+  background-color: rgba(10, 15, 25, 0.95);
+  border: 1px solid #ff5e00;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(255, 94, 0, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.army-power-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #ff5e00, transparent);
+  z-index: 2;
+}
+
+.army-power-card .card-header {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 94, 0, 0.5);
+  padding: 15px;
+}
+
+.army-power-card .card-header h5 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.army-power-card .card-body {
+  padding: 15px;
+}
+
+.power-level {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.power-value {
+  font-size: 36px;
+  font-weight: 800;
+  color: #ff5e00;
+  text-shadow: 0 0 10px rgba(255, 94, 0, 0.5);
+}
+
+.power-label {
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.power-breakdown {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.breakdown-item:last-child {
+  margin-bottom: 0;
+}
+
+.breakdown-label {
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.breakdown-value {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Loading spinner */
+.solo-spinner {
+  color: #2a52be;
+  width: 50px;
+  height: 50px;
+}
+
+.error-icon {
+  font-size: 48px;
+  color: #ff4444;
+}
+
+/* Solo button style */
+.solo-btn {
+  background-color: #2a52be;
+  border: none;
+  color: white;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 8px 20px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.solo-btn:hover {
+  background-color: #3a62ce;
+  box-shadow: 0 0 15px rgba(42, 82, 190, 0.8);
+}
+
+.solo-btn:active {
+  transform: scale(0.98);
+}
+
+.solo-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Form styling */
+.form-control, .form-select {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-color: #2a52be;
+  box-shadow: 0 0 0 0.25rem rgba(42, 82, 190, 0.25);
+  color: #ffffff;
+}
+
+.input-group-text {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a0a0a0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .shadow-army-main {
+    margin-bottom: 30px;
+  }
+  
+  .page-title {
+    font-size: 28px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .page-actions {
+    width: 100%;
+  }
+  
+  .tab-btn {
+    flex: 1;
+  }
+}

@@ -1,0 +1,133 @@
+/* Solo Leveling style social login component */
+.social-login-container {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.social-login-divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.social-login-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.social-login-divider span {
+  position: relative;
+  background-color: rgba(10, 15, 25, 0.95);
+  padding: 0 15px;
+  color: #a0a0a0;
+  font-size: 14px;
+}
+
+.social-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  font-weight: 600;
+  border-width: 2px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.social-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+.google-btn {
+  border-color: #4285F4;
+  color: #ffffff;
+}
+
+.google-btn:hover:not(:disabled) {
+  background-color: rgba(66, 133, 244, 0.2);
+  border-color: #4285F4;
+  box-shadow: 0 0 10px rgba(66, 133, 244, 0.5);
+}
+
+.facebook-btn {
+  border-color: #3b5998;
+  color: #ffffff;
+}
+
+.facebook-btn:hover:not(:disabled) {
+  background-color: rgba(59, 89, 152, 0.2);
+  border-color: #3b5998;
+  box-shadow: 0 0 10px rgba(59, 89, 152, 0.5);
+}
+
+.social-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.social-login-note {
+  text-align: center;
+  margin-top: 15px;
+  color: #a0a0a0;
+}
+
+/* Holographic effect */
+.social-btn:hover::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: holographic 2s infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes holographic {
+  0% {
+    transform: rotate(30deg) translateX(-100%);
+  }
+  100% {
+    transform: rotate(30deg) translateX(100%);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .social-btn {
+    padding: 10px;
+    font-size: 14px;
+  }
+}

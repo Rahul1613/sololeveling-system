@@ -1,0 +1,87 @@
+{
+  "short_name": "Solo Leveling",
+  "name": "Solo Leveling: Personal Development System",
+  "description": "Level up your life with the Solo Leveling personal development system",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#3f51b5",
+  "background_color": "#121212",
+  "categories": ["productivity", "lifestyle", "education"],
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Dashboard"
+    },
+    {
+      "src": "screenshots/quests.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Quest Board"
+    },
+    {
+      "src": "screenshots/shadows.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Shadow Army"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your status and progress",
+      "url": "/",
+      "icons": [{ "src": "icons/dashboard.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Quest Board",
+      "short_name": "Quests",
+      "description": "View and manage your quests",
+      "url": "/quests",
+      "icons": [{ "src": "icons/quests.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Shadow Army",
+      "short_name": "Shadows",
+      "description": "Manage your shadow army",
+      "url": "/shadows",
+      "icons": [{ "src": "icons/shadows.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Inventory",
+      "short_name": "Inventory",
+      "description": "Manage your inventory",
+      "url": "/inventory",
+      "icons": [{ "src": "icons/inventory.png", "sizes": "96x96" }]
+    }
+  ]
+}

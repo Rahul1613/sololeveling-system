@@ -1,0 +1,94 @@
+.inventory-item-card {
+  background-color: rgba(20, 25, 40, 0.95);
+  border: 1px solid rgba(123, 104, 238, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(123, 104, 238, 0.2);
+}
+
+.inventory-item-card.equipped {
+  border: 2px solid #00c851;
+  box-shadow: 0 0 20px #00c85144;
+}
+
+.item-image-container {
+  position: relative;
+  padding-top: 100%;
+  background: linear-gradient(135deg, rgba(42, 82, 190, 0.07) 0%, rgba(0,0,0,0.2) 100%);
+  overflow: hidden;
+}
+
+.item-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.item-type {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.7);
+  padding: 4px 8px;
+  font-size: 12px;
+  text-align: center;
+  text-transform: capitalize;
+  color: #7B68EE;
+}
+
+.equipped-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 12px;
+  z-index: 2;
+}
+
+.item-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.item-description {
+  font-size: 13px;
+  color: #b0b0b0;
+  margin-bottom: 10px;
+}
+
+.item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.item-type-icon {
+  margin-right: 4px;
+  font-size: 13px;
+}
+
+.item-type-icon.weapon {
+  color: #ffbb33;
+}
+.item-type-icon.armor {
+  color: #00c8ff;
+}
+.item-type-icon.consumable {
+  color: #00c851;
+}
+.item-type-icon.accessory {
+  color: #a335ee;
+}
