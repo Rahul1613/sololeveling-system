@@ -302,7 +302,7 @@ const Dashboard = () => {
         </Box>
       )}
       {/* Background music audio element */}
-      <audio ref={bgAudioRef} src={process.env.PUBLIC_URL + '/sounds/solo leveling bg.mp3'} loop preload="auto" style={{ display: 'none' }} />
+      <audio ref={bgAudioRef} src={process.env.PUBLIC_URL + '/sounds/solo-leveling-bg.mp3'} loop preload="auto" style={{ display: 'none' }} />
       {/* Main Grid Layout */}
       <Grid container spacing={3}>
         {/* Status Window */}
