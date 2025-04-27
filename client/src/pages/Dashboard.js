@@ -250,6 +250,19 @@ const Dashboard = () => {
     }
   };
   
+  // Add audio ref for background music
+  const bgAudioRef = useRef(null);
+  const [arisePlayed, setArisePlayed] = useState(false);
+
+  // Play bg music after arise animation (simulate arise animation completion)
+  useEffect(() => {
+    // If arise animation is handled elsewhere, replace this logic with actual arise animation completion event
+    if (arisePlayed && bgAudioRef.current) {
+      bgAudioRef.current.volume = 0.15;
+      bgAudioRef.current.play();
+    }
+  }, [arisePlayed]);
+
   // If no user is logged in, show login prompt
   if (!user) {
     return (
@@ -282,6 +295,14 @@ const Dashboard = () => {
   
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* DEMO: Button to simulate "arise" animation completion */}
+      {!arisePlayed && (
+        <Box sx={{ mb: 3, textAlign: 'center' }}>
+          <button style={{ fontSize: 18, padding: '10px 24px', background: '#00eaff', border: 'none', borderRadius: 8, color: '#222', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 12px #00eaff55' }} onClick={() => setArisePlayed(true)}>Simulate "Arise" Animation</button>
+        </Box>
+      )}
+      {/* Background music audio element */}
+      <audio ref={bgAudioRef} src={process.env.PUBLIC_URL + '/sounds/solo leveling bg.mp3'} loop preload="auto" style={{ display: 'none' }} />
       {/* Main Grid Layout */}
       <Grid container spacing={3}>
         {/* Status Window */}

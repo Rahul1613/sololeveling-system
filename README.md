@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Solo Leveling System
 
 A gamified personal development platform inspired by the popular manhwa "Solo Leveling". This application allows users to level up, complete quests, manage their shadow army, acquire items, and complete fitness challenges to advance in their personal development journey.
@@ -97,3 +98,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Inspired by the "Solo Leveling" manhwa by Chugong
 - Special thanks to all contributors and the open-source community
+=======
+# sololeveling-system
+sololeveling system
+>>>>>>> 9e1583f4aef9de2e2b13422109c6013061e65ae3
