@@ -117,6 +117,11 @@ app.use((req, res, next) => {
 // Enable preflight requests for all routes
 app.options('*', cors(corsOptions));
 
+// Add root endpoint for base URL
+app.get('/', (req, res) => {
+  res.status(200).send('Solo Leveling System API is running!');
+});
+
 // Add health check endpoint for network connectivity testing
 app.get('/api/health', (req, res) => {
   res.status(200).json({
