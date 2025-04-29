@@ -60,17 +60,20 @@ router.get('/', auth, async (req, res) => {
       .select('activeQuests completedQuests')
       .populate('activeQuests.quest');
     
+    // Defensive: Ensure arrays
+    const completedQuestsArr = Array.isArray(user.completedQuests) ? user.completedQuests : [];
+    const activeQuestsArr = Array.isArray(user.activeQuests) ? user.activeQuests : [];
     // Filter out quests that user has already completed or are active using safe utilities
     const availableQuests = quests.filter(quest => {
       if (!quest || !quest._id) return false;
       
       // Check if quest is already completed
-      const isCompleted = safeFilter(user.completedQuests, 
+      const isCompleted = safeFilter(completedQuestsArr, 
         completedQuest => completedQuest && completedQuest.toString() === quest._id.toString()
       ).length > 0;
       
       // Check if quest is already active
-      const isActive = safeFilter(user.activeQuests, 
+      const isActive = safeFilter(activeQuestsArr, 
         activeQuest => safeGet(activeQuest, 'quest') && 
           safeGet(activeQuest, 'quest').toString() === quest._id.toString()
       ).length > 0;
@@ -102,8 +105,10 @@ router.get('/active', auth, async (req, res) => {
       .select('activeQuests')
       .populate('activeQuests.quest');
     
+    // Defensive: Ensure array
+    const activeQuestsArr = Array.isArray(user.activeQuests) ? user.activeQuests : [];
     // Filter out any null or invalid quests using safe utilities
-    const validActiveQuests = safeFilter(user.activeQuests, activeQuest => 
+    const validActiveQuests = safeFilter(activeQuestsArr, activeQuest => 
       safeGet(activeQuest, 'quest')
     );
     
@@ -130,8 +135,10 @@ router.get('/completed', auth, async (req, res) => {
       .select('completedQuests')
       .populate('completedQuests');
     
+    // Defensive: Ensure array
+    const completedQuestsArr = Array.isArray(user.completedQuests) ? user.completedQuests : [];
     // Filter out any null or invalid quests using safe utilities
-    const validCompletedQuests = safeFilter(user.completedQuests, quest => quest);
+    const validCompletedQuests = safeFilter(completedQuestsArr, quest => quest);
     
     console.log(`Found ${validCompletedQuests.length} completed quests`);
     
@@ -527,18 +534,19 @@ router.get('/daily', auth, async (req, res) => {
       .select('activeQuests completedQuests')
       .populate('activeQuests.quest');
     
+    // Defensive: Ensure arrays
+    const completedQuestsArr = Array.isArray(user.completedQuests) ? user.completedQuests : [];
+    const activeQuestsArr = Array.isArray(user.activeQuests) ? user.activeQuests : [];
     // Filter out quests that user has already completed or are active
     const availableDailyQuests = dailyQuests.filter(quest => {
-      // Check if quest is already completed
-      const isCompleted = user.completedQuests.some(
-        completedQuest => completedQuest.toString() === quest._id.toString()
-      );
-      
+      // Check if quest is completed
+      const isCompleted = safeFilter(completedQuestsArr, 
+        completedQuest => completedQuest && completedQuest.toString() === quest._id.toString()
+      ).length > 0;
       // Check if quest is already active
-      const isActive = user.activeQuests.some(
-        activeQuest => activeQuest.quest._id.toString() === quest._id.toString()
-      );
-      
+      const isActive = safeFilter(activeQuestsArr, 
+        activeQuest => safeGet(activeQuest, 'quest') && safeGet(activeQuest, 'quest').toString() === quest._id.toString()
+      ).length > 0;
       return !isCompleted && !isActive;
     });
     
@@ -570,18 +578,19 @@ router.get('/emergency', auth, async (req, res) => {
       .select('activeQuests completedQuests')
       .populate('activeQuests.quest');
     
+    // Defensive: Ensure arrays
+    const completedQuestsArr = Array.isArray(user.completedQuests) ? user.completedQuests : [];
+    const activeQuestsArr = Array.isArray(user.activeQuests) ? user.activeQuests : [];
     // Filter out quests that user has already completed or are active
     const availableEmergencyQuests = emergencyQuests.filter(quest => {
-      // Check if quest is already completed
-      const isCompleted = user.completedQuests.some(
-        completedQuest => completedQuest.toString() === quest._id.toString()
-      );
-      
+      // Check if quest is completed
+      const isCompleted = safeFilter(completedQuestsArr, 
+        completedQuest => completedQuest && completedQuest.toString() === quest._id.toString()
+      ).length > 0;
       // Check if quest is already active
-      const isActive = user.activeQuests.some(
-        activeQuest => activeQuest.quest._id.toString() === quest._id.toString()
-      );
-      
+      const isActive = safeFilter(activeQuestsArr, 
+        activeQuest => safeGet(activeQuest, 'quest') && safeGet(activeQuest, 'quest').toString() === quest._id.toString()
+      ).length > 0;
       return !isCompleted && !isActive;
     });
     
