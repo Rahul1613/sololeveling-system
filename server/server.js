@@ -116,9 +116,13 @@ app.use((req, res, next) => {
 // Enable preflight requests for all routes
 app.options('*', cors(corsOptions));
 
-// Add root endpoint for base URL
-app.get('/', (req, res) => {
-  res.status(200).send('Solo Leveling System API is running!');
+// Serve React frontend static files
+const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
+app.use(express.static(clientBuildPath));
+
+// Serve React app for all non-API routes
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
 // Add health check endpoint for network connectivity testing
