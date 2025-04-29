@@ -20,7 +20,7 @@
   "description": "Backend server for Solo Leveling System - A gamified personal development platform inspired by Solo Leveling",
   "dependencies": {
     "axios": "^1.8.4",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.18.2",
