@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http');
@@ -162,11 +161,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static item images from the React public directory
 const clientItemsPath = path.join(__dirname, '..', 'client', 'public', 'images', 'items');
 app.use('/images/items', express.static(clientItemsPath));
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/solo-leveling-system')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
 
 // Initialize WebSocket server
 let wss = null;
