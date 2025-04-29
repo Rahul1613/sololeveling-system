@@ -15,9 +15,16 @@ export const getItemImagePath = (item) => {
   // If the item already has an image path, use it
   if (item.image) return item.image;
   
+  // Check if we're in production on render.com
+  const isProduction = window.location.hostname.includes('render.com') || 
+                      window.location.hostname.includes('sololeveling-system');
+  
+  // Base path for images
+  const basePath = isProduction ? '/static/media' : '/images';
+  
   // Try to use the item name
   if (item.name) {
-    return `/images/items/${item.name}.png`;
+    return `${basePath}/items/${item.name}.png`;
   }
   
   // Fall back to category-based defaults
@@ -30,7 +37,7 @@ export const getItemImagePath = (item) => {
   };
   
   const defaultImage = categoryDefaults[item.category?.toLowerCase()] || 'default.png';
-  return `/images/items/${defaultImage}`;
+  return `${basePath}/items/${defaultImage}`;
 };
 
 /**
@@ -45,13 +52,20 @@ export const handleImageError = (event, item, setImagePath = null) => {
   const imgElement = event.target;
   const imgName = item.name;
   
+  // Check if we're in production on render.com
+  const isProduction = window.location.hostname.includes('render.com') || 
+                      window.location.hostname.includes('sololeveling-system');
+  
+  // Base path for images
+  const basePath = isProduction ? '/static/media' : '/images';
+  
   // Try different file extensions
   const extensions = ['.jpg', '.jpeg', '.gif'];
   let extensionIndex = 0;
   
   const tryNextExtension = () => {
     if (extensionIndex < extensions.length) {
-      const newPath = `/images/items/${imgName}${extensions[extensionIndex]}`;
+      const newPath = `${basePath}/items/${imgName}${extensions[extensionIndex]}`;
       if (setImagePath) {
         setImagePath(newPath);
       } else {
@@ -67,7 +81,7 @@ export const handleImageError = (event, item, setImagePath = null) => {
         item.category === 'accessories' ? 'Shadow Essence.jpeg' :
         'Teleportation Scroll.jpeg';
       
-      const fallbackPath = `/images/items/${fallbackImage}`;
+      const fallbackPath = `${basePath}/items/${fallbackImage}`;
       if (setImagePath) {
         setImagePath(fallbackPath);
         // If even the fallback fails, use a data URI

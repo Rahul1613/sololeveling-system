@@ -211,33 +211,37 @@ class NetworkManager {
    * @returns {Promise<boolean>} Whether the server is reachable
    */
   async checkServerConnection() {
-    // Skip connection check if flag is set
-    if (this.skipConnectionCheck) {
-      // Simulate successful connection
-      this.lastSuccessfulConnection = Date.now();
-      this._handleOnlineStatus(true);
-      return true;
-    }
-    
-    // In development environment, always return true to avoid network errors
+    // Skip if we're in development mode
     if (this.isDevelopment) {
-      // Simulate successful connection
       this.lastSuccessfulConnection = Date.now();
       this._handleOnlineStatus(true);
-      
-      // Don't log in development to avoid console spam
       return true;
     }
     
-    // For production environment, proceed with actual connection check
+    // Skip if connection check is disabled
+    if (this.skipConnectionCheck) {
+      this.lastSuccessfulConnection = Date.now();
+      this._handleOnlineStatus(true);
+      return true;
+    }
+    
+    // Skip if browser is offline
     if (!navigator.onLine) {
       this._handleOnlineStatus(false);
       return false;
     }
     
     try {
-      // Use a simple endpoint that should respond quickly
-      const url = `${this.getApiUrl()}/api/health`;
+      // Construct health check URL based on environment
+      let url;
+      
+      // For production on render.com, use a relative URL
+      if (window.location.hostname.includes('render.com') || 
+          window.location.hostname.includes('sololeveling-system')) {
+        url = '/api/health';
+      } else {
+        url = `${this.getApiUrl()}/api/health`;
+      }
       
       // Set up timeout
       const timeout = NETWORK_CONFIG?.healthCheckTimeout || 5000;

@@ -21,10 +21,30 @@ export const getMarketplaceItems = createAsyncThunk(
   'marketplace/getItems',
   async (filters, thunkAPI) => {
     try {
-      // For testing, use our sample data instead of API call
-      console.log('Sample marketplace items:', sampleMarketplaceItems);
-      return sampleMarketplaceItems;
+      // Check if we're in development/mock mode
+      const isDevelopment = process.env.NODE_ENV === 'development' || 
+                          process.env.REACT_APP_USE_MOCK_API === 'true' || 
+                          window.location.hostname === 'localhost';
+      
+      if (isDevelopment) {
+        // For testing, use our sample data instead of API call
+        console.log('Using mock data for marketplace items');
+        return sampleMarketplaceItems;
+      }
+      
+      // In production, make an actual API call
+      const response = await axios.get('/api/marketplace/items', { params: filters });
+      console.log('API response for marketplace items:', response.data);
+      return response.data;
     } catch (error) {
+      console.error('Error fetching marketplace items:', error);
+      
+      // If API call fails in production, fall back to sample data as a last resort
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('Falling back to sample marketplace data due to API error');
+        return sampleMarketplaceItems;
+      }
+      
       const message = 
         (error.response && 
           error.response.data && 

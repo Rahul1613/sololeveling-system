@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Typography, Grid, Container, CircularProgress, Alert } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { getMarketplaceItems } from '../redux/slices/marketplaceSlice';
 import ItemImage from '../components/marketplace/ItemImage';
+import ErrorBoundary from '../components/common/ErrorBoundary';
 
 // Styled components
 const MarketplaceContainer = styled(Container)(({ theme }) => ({

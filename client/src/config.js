@@ -11,16 +11,22 @@ const getServerUrl = () => {
     return savedUrl;
   }
   
+  // Check if we're in a production environment on render.com
+  if (window.location.hostname.includes('render.com') || 
+      window.location.hostname.includes('sololeveling-system')) {
+    // Use the same domain but with the backend path
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    return `${protocol}//${hostname}/api`;
+  }
+  
   // In development, try common development ports
   if (process.env.NODE_ENV === 'development') {
-    // Instead of reading from port.json, we'll use common ports
-    // The networkManager will try these in sequence if needed
     console.log('Using development default ports');
     return 'http://localhost:5002';
   }
   
   // Fallback to default ports in sequence
-  // The axios instance will try these URLs in sequence if the primary fails
   return 'http://localhost:5002';
 };
 
@@ -28,11 +34,13 @@ export const API_URL = getServerUrl();
 
 // Fallback URLs to try if the main URL fails
 export const FALLBACK_URLS = [
+  // Production URLs
+  'https://sololeveling-system.onrender.com/api',
+  'https://sololeveling-system-api.onrender.com',
+  // Development URLs
   'http://localhost:5002',
   'http://localhost:5003',
-  'http://localhost:5004',
-  'http://localhost:5005',
-  'http://localhost:5006'
+  'http://localhost:5004'
 ];
 
 // Socket configuration with the same URL as the API
