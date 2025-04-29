@@ -159,6 +159,10 @@ app.use((req, res, next) => {
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static item images from the React public directory
+const clientItemsPath = path.join(__dirname, '..', 'client', 'public', 'images', 'items');
+app.use('/images/items', express.static(clientItemsPath));
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/solo-leveling-system')
   .then(() => console.log('Connected to MongoDB'))
