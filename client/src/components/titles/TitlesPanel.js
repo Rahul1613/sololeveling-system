@@ -19,8 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   fetchUserTitles,
   equipTitle,
-  unequipTitle,
-  setSelectedTitle
+  unequipTitle
 } from '../../redux/slices/titlesSlice';
 
 // Styled components

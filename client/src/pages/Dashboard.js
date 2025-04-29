@@ -19,7 +19,9 @@ import {
   Chip,
   Divider,
   Badge,
-  Tooltip
+  Tooltip,
+  Button,
+  CircularProgress
 } from '@mui/material';
 import {
   Assignment as QuestIcon,
@@ -36,7 +38,9 @@ import {
   Lock as LockIcon,
   LockOpen as UnlockIcon,
   Star as StarIcon,
-  StarBorder as StarBorderIcon
+  StarBorder as StarBorderIcon,
+  AccessTime as AccessTimeIcon,
+  Whatshot as StreakIcon
 } from '@mui/icons-material';
 
 // Import holographic UI components
@@ -45,10 +49,12 @@ import GlobalRanking from '../components/Leaderboard/GlobalRanking';
 import SkillsPanel from '../components/skills/SkillsPanel';
 import SkillTree from '../components/skills/SkillTree';
 import TitlesPanel from '../components/titles/TitlesPanel';
+import HabitTracker from '../components/habits/HabitTracker';
 import voiceService from '../utils/voiceService';
 import userService from '../api/userService';
 import SystemPanel from '../components/common/SystemPanel';
 import SystemButton from '../components/common/SystemButton';
+import ShadowExtraction from '../components/shadows/ShadowExtraction';
 
 // Mock data for features that haven't been fully implemented yet
 const mockSkills = [
@@ -78,21 +84,27 @@ const mockDungeonKeys = [
 
 const StatBar = ({ label, value, max, color }) => (
   <Box sx={{ mb: 1 }}>
-    <Typography sx={{ fontSize: 13, color: '#4eafe9', fontWeight: 700, letterSpacing: 1 }}>{label}</Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+      <Typography sx={{ fontSize: 13, color: color || '#4eafe9', fontWeight: 700, letterSpacing: 1 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: '#e0e0e0', fontWeight: 500 }}>
+        {value}/{max}
+      </Typography>
+    </Box>
     <LinearProgress
       variant="determinate"
-      value={Math.min(100, (value / max) * 100)}
+      value={(value / max) * 100}
       sx={{
-        height: 10,
-        borderRadius: 5,
-        background: 'rgba(78,175,233,0.15)',
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
         '& .MuiLinearProgress-bar': {
-          background: color || '#00eaff',
-          boxShadow: `0 0 8px ${color || '#00eaff'}`
+          backgroundColor: color || '#4eafe9',
+          boxShadow: `0 0 10px ${color || '#4eafe9'}`
         }
       }}
     />
-    <Typography sx={{ fontSize: 12, color: '#eaf6ff', mt: 0.5 }}>{value} / {max}</Typography>
   </Box>
 );
 
@@ -294,255 +306,362 @@ const Dashboard = () => {
   };
   
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      {/* DEMO: Button to simulate "arise" animation completion */}
-      {!arisePlayed && (
-        <Box sx={{ mb: 3, textAlign: 'center' }}>
-          <button style={{ fontSize: 18, padding: '10px 24px', background: '#00eaff', border: 'none', borderRadius: 8, color: '#222', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 12px #00eaff55' }} onClick={() => setArisePlayed(true)}>Simulate "Arise" Animation</button>
-        </Box>
-      )}
-      {/* Background music audio element */}
-      <audio ref={bgAudioRef} src={process.env.PUBLIC_URL + '/sounds/solo-leveling-bg.mp3'} loop preload="auto" style={{ display: 'none' }} />
-      {/* Main Grid Layout */}
+    <Box sx={{ py: 4 }}>
       <Grid container spacing={3}>
-        {/* Status Window */}
-        <Grid item xs={12} md={4}>
-          <SystemPanel style={{ mb: 2 }}>
-            <Typography sx={{ color: '#00eaff', fontFamily: 'Orbitron', fontSize: 22, mb: 1, letterSpacing: 2, textShadow: '0 0 6px #00eaffcc' }}>
-              STATUS WINDOW
-            </Typography>
-            <Grid container spacing={1}>
-              <Grid item xs={6}>
-                <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: 26, letterSpacing: 2 }}>
-                  Lv. {safeUser.level}
-                </Typography>
-                <Typography sx={{ color: '#4eafe9', fontSize: 18, fontFamily: 'Rajdhani', fontWeight: 700, letterSpacing: 1 }}>
-                  {safeUser.username}
-                </Typography>
-                <Typography sx={{ color: '#b8eaff', fontSize: 14, fontWeight: 600, mt: 1 }}>
-                  Rank: {safeUser.rank}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <StatBar label="HP" value={safeUser.hp.current} max={safeUser.hp.max} color="#ff4eae" />
-                <StatBar label="MP" value={safeUser.mp.current} max={safeUser.mp.max} color="#4eafe9" />
-                <StatBar label="XP" value={safeUser.experience} max={safeUser.experienceToNextLevel} color="#00eaff" />
-              </Grid>
-            </Grid>
-            <Box sx={{ mt: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}><SystemButton>Quests</SystemButton></Grid>
-                <Grid item xs={6}><SystemButton>Inventory</SystemButton></Grid>
-                <Grid item xs={6}><SystemButton>Shadow Army</SystemButton></Grid>
-                <Grid item xs={6}><SystemButton>Skills</SystemButton></Grid>
-              </Grid>
-            </Box>
-          </SystemPanel>
-          {/* Dungeon Keys */}
-          <SystemPanel style={{ mt: 2 }}>
-            <Typography sx={{ color: '#00eaff', fontFamily: 'Orbitron', fontSize: 22, mb: 1, letterSpacing: 2, textShadow: '0 0 6px #00eaffcc' }}>
-              DUNGEON KEYS
-            </Typography>
-            <List>
-              {dungeonKeys.map((key) => (
-                <ListItem
-                  key={key.id}
-                  secondaryAction={
-                    <SystemButton
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                      disabled={key.count === 0}
-                      onClick={() => handleUseKey(key.id)}
-                      startIcon={key.count > 0 ? <UnlockIcon /> : <LockIcon />}
-                    >
-                      {key.count > 0 ? 'Use' : 'Locked'}
-                    </SystemButton>
-                  }
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: getRankColor(key.rank) }}>
-                      <KeyIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="body1">{key.name}</Typography>
-                        <Chip 
-                          label={`x${key.count}`} 
-                          size="small" 
-                          sx={{ ml: 1, bgcolor: key.count > 0 ? 'rgba(123, 104, 238, 0.2)' : 'rgba(0, 0, 0, 0.2)', color: key.count > 0 ? 'primary.main' : 'text.disabled' }} 
-                        />
-                      </Box>
-                    }
-                    secondary={key.description}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </SystemPanel>
+        {/* Left Column - Status Window */}
+        <Grid item xs={12} md={4} lg={3}>
+          <Box className="container-section" sx={{ height: '100%' }}>
+            {user ? (
+              <StatusWindow 
+                user={user} 
+                calculateExpPercentage={calculateExpPercentage}
+                getRankColor={getRankColor}
+              />
+            ) : (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <CircularProgress />
+              </Box>
+            )}
+          </Box>
         </Grid>
         
-        {/* Main Content Area */}
-        <Grid item xs={12} md={8}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        {/* Middle Column - Tabs and Content */}
+        <Grid item xs={12} md={8} lg={9}>
+          <Box className="container-section">
+            {/* Tabs */}
             <Tabs 
               value={tabValue} 
               onChange={handleTabChange} 
-              variant={isMobile ? "scrollable" : "standard"}
+              variant="scrollable"
               scrollButtons="auto"
-              allowScrollButtonsMobile
-              sx={{
-                '& .MuiTabs-indicator': {
-                  backgroundColor: 'primary.main',
+              sx={{ 
+                mb: 3,
+                '& .MuiTab-root': {
+                  color: '#e0e0e0',
+                  '&.Mui-selected': {
+                    color: '#4287f5',
+                    textShadow: '0 0 10px rgba(66, 135, 245, 0.7)'
+                  }
                 },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#4287f5',
+                  boxShadow: '0 0 10px rgba(66, 135, 245, 0.7)'
+                }
               }}
             >
-              <Tab icon={<LeaderboardIcon />} label="Rankings" />
-              <Tab icon={<SkillsIcon />} label="Skills" />
-              <Tab icon={<TitlesIcon />} label="Titles" />
+              <Tab icon={<LeaderboardIcon />} label="RANKINGS" />
+              <Tab icon={<ShadowIcon />} label="SHADOWS" />
+              <Tab icon={<SkillsIcon />} label="SKILLS" />
+              <Tab icon={<TitlesIcon />} label="TITLES" />
+              <Tab icon={<KeyIcon />} label="DUNGEON KEYS" />
+              <Tab icon={<StreakIcon />} label="HABITS" />
             </Tabs>
-          </Box>
-          
-          {/* Tab Panels */}
-          <Box sx={{ mt: 2 }}>
-            {/* Rankings Tab */}
+            
+            <Divider sx={{ mb: 3, backgroundColor: 'rgba(66, 135, 245, 0.3)', boxShadow: '0 0 5px rgba(66, 135, 245, 0.2)' }} />
+            
+            {/* Global Rankings Tab */}
             {tabValue === 0 && (
-              <GlobalRanking />
+              <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+                <Typography variant="h5" className="section-title">
+                  Global Rankings
+                </Typography>
+                <GlobalRanking />
+              </Box>
+            )}
+            
+            {/* Shadows Tab */}
+            {tabValue === 1 && (
+              <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+                <Typography variant="h5" className="section-title">
+                  Shadow Army
+                </Typography>
+                
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Shadow Extraction
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    Extract shadows from targets using your camera. Higher level hunters can extract more powerful shadows.
+                  </Typography>
+                  <ShadowExtraction />
+                </Box>
+                
+                <Divider sx={{ my: 4, backgroundColor: 'rgba(66, 135, 245, 0.3)', boxShadow: '0 0 5px rgba(66, 135, 245, 0.2)' }} />
+                
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Shadow Summoning
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    Summon shadows using currency. Different summoning methods yield different quality shadows.
+                  </Typography>
+                  {/* Shadow summoning component would go here */}
+                </Box>
+                
+                <Divider sx={{ my: 4, backgroundColor: 'rgba(66, 135, 245, 0.3)', boxShadow: '0 0 5px rgba(66, 135, 245, 0.2)' }} />
+                
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Your Shadow Army
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    Manage and deploy your shadow army. Assign shadows to tasks or use them in combat.
+                  </Typography>
+                  
+                  {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : user && user.shadows && user.shadows.length > 0 ? (
+                    <Grid container spacing={2}>
+                      {user.shadows.map(shadow => (
+                        <Grid item xs={12} sm={6} md={4} key={shadow._id}>
+                          <HolographicCard className="card-container">
+                            <Box className="card-content" p={2}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Avatar 
+                                  src={shadow.image} 
+                                  alt={shadow.name}
+                                  sx={{ 
+                                    width: 60, 
+                                    height: 60, 
+                                    mr: 2,
+                                    border: '2px solid',
+                                    borderColor: getRankColor(shadow.rank),
+                                    boxShadow: `0 0 10px ${getRankColor(shadow.rank)}`
+                                  }}
+                                />
+                                <Box>
+                                  <Typography variant="h6" className="quest-title">
+                                    {shadow.name}
+                                  </Typography>
+                                  <Chip 
+                                    label={shadow.rank} 
+                                    size="small"
+                                    sx={{ 
+                                      backgroundColor: getRankColor(shadow.rank),
+                                      color: '#fff',
+                                      fontWeight: 'bold'
+                                    }}
+                                  />
+                                </Box>
+                              </Box>
+                              
+                              <Typography variant="body2" className="quest-description" mb={2}>
+                                {shadow.description}
+                              </Typography>
+                              
+                              <Box mb={2}>
+                                <StatBar label="POWER" value={shadow.power} max={100} color={getRankColor(shadow.rank)} />
+                                <StatBar label="HEALTH" value={shadow.health} max={100} color="#f44336" />
+                                <StatBar label="AGILITY" value={shadow.agility} max={100} color="#4caf50" />
+                              </Box>
+                              
+                              <Box display="flex" justifyContent="space-between">
+                                <Button 
+                                  variant="contained" 
+                                  color="primary"
+                                  startIcon={<ViewIcon />}
+                                  size="small"
+                                >
+                                  Details
+                                </Button>
+                                
+                                <Button 
+                                  variant="outlined" 
+                                  color="secondary"
+                                  startIcon={<ArrowIcon />}
+                                  size="small"
+                                >
+                                  Deploy
+                                </Button>
+                              </Box>
+                            </Box>
+                          </HolographicCard>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 4, backgroundColor: 'rgba(10, 10, 15, 0.5)', borderRadius: 2 }}>
+                      <Typography variant="h6" color="#e0e0e0">
+                        No shadows in your army yet
+                      </Typography>
+                      <Typography variant="body2" color="#e0e0e0" sx={{ mt: 1, mb: 3 }}>
+                        Complete quests to encounter monsters and extract their shadows
+                      </Typography>
+                      <Button 
+                        variant="contained" 
+                        color="primary"
+                        startIcon={<QuestIcon />}
+                        onClick={() => navigate('/quests')}
+                      >
+                        Go to Quests
+                      </Button>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
             )}
             
             {/* Skills Tab */}
-            {tabValue === 1 && (
-              <SystemPanel title="Skills" height="auto">
-                <Grid container spacing={2}>
+            {tabValue === 2 && (
+              <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+                <Typography variant="h5" className="section-title">
+                  Skills & Abilities
+                </Typography>
+                
+                <Grid container spacing={3} className="grid-container">
                   {skills.map((skill) => (
-                    <Grid item xs={12} sm={6} key={skill.id}>
-                      <Box 
-                        sx={{ 
-                          p: 2, 
-                          bgcolor: skill.unlocked ? 'rgba(123, 104, 238, 0.1)' : 'rgba(0, 0, 0, 0.2)',
-                          border: '1px solid',
-                          borderColor: skill.unlocked ? 'rgba(123, 104, 238, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {skill.unlocked && (
-                          <Box 
-                            sx={{ 
-                              position: 'absolute', 
-                              top: 0, 
-                              left: 0, 
-                              width: '100%', 
-                              height: '100%', 
-                              background: 'linear-gradient(45deg, rgba(123, 104, 238, 0.05) 25%, transparent 25%, transparent 50%, rgba(123, 104, 238, 0.05) 50%, rgba(123, 104, 238, 0.05) 75%, transparent 75%, transparent)',
-                              backgroundSize: '20px 20px',
-                              opacity: 0.3
-                            }} 
-                          />
-                        )}
-                        <Box sx={{ position: 'relative', zIndex: 1 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
-                              <span style={{ marginRight: '8px', fontSize: '1.5rem' }}>{skill.icon}</span>
-                              {skill.name}
-                            </Typography>
-                            {!skill.unlocked && (
-                              <Chip 
-                                label={`Requires Level ${skill.requiredLevel}`} 
-                                size="small" 
-                                color="error" 
-                                icon={<LockIcon />} 
-                              />
-                            )}
+                    <Grid item xs={12} sm={6} md={4} key={skill.id}>
+                      <HolographicCard className="card-container" sx={{
+                        border: skill.unlocked ? '1px solid rgba(66, 135, 245, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
+                        opacity: skill.unlocked ? 1 : 0.7
+                      }}>
+                        <Box className="card-content" p={2}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                            <Avatar 
+                              sx={{ 
+                                width: 40, 
+                                height: 40, 
+                                mr: 2,
+                                backgroundColor: skill.unlocked ? 'rgba(66, 135, 245, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+                                border: '1px solid',
+                                borderColor: skill.unlocked ? 'rgba(66, 135, 245, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+                                fontSize: '1.5rem'
+                              }}
+                            >
+                              {skill.icon}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="h6" className="quest-title" sx={{ 
+                                color: skill.unlocked ? '#4287f5' : '#757575'
+                              }}>
+                                {skill.name}
+                              </Typography>
+                              <Typography variant="caption" color="#e0e0e0">
+                                Level {skill.level}/{skill.maxLevel}
+                              </Typography>
+                            </Box>
                           </Box>
-                          <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                          
+                          <Typography variant="body2" className="quest-description" mb={2}>
                             {skill.description}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <Typography variant="body2" sx={{ mr: 1 }}>
-                              Level: {skill.level}/{skill.maxLevel}
-                            </Typography>
+                          
+                          {!skill.unlocked && (
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              mb: 2, 
+                              p: 1, 
+                              borderRadius: 1,
+                              backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                              border: '1px solid rgba(244, 67, 54, 0.3)'
+                            }}>
+                              <LockIcon sx={{ color: '#f44336', mr: 1, fontSize: '0.9rem' }} />
+                              <Typography variant="caption" color="#f44336">
+                                Requires Level {skill.requiredLevel}
+                              </Typography>
+                            </Box>
+                          )}
+                          
+                          <Box sx={{ mb: 2 }}>
                             <LinearProgress 
                               variant="determinate" 
                               value={(skill.level / skill.maxLevel) * 100} 
                               sx={{ 
-                                flexGrow: 1, 
                                 height: 8, 
                                 borderRadius: 4,
-                                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                backgroundColor: 'rgba(0, 0, 0, 0.3)',
                                 '& .MuiLinearProgress-bar': {
-                                  bgcolor: skill.unlocked ? 'primary.main' : 'text.disabled'
+                                  backgroundColor: skill.unlocked ? '#4287f5' : '#757575',
+                                  boxShadow: skill.unlocked ? '0 0 10px rgba(66, 135, 245, 0.7)' : 'none'
                                 }
                               }} 
                             />
                           </Box>
+                          
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                             {!skill.unlocked ? (
-                              <SystemButton 
+                              <Button 
                                 variant="contained" 
                                 color="primary" 
                                 fullWidth
+                                startIcon={<UnlockIcon />}
                                 disabled={!user || user.level < skill.requiredLevel}
                                 onClick={() => handleSkillUnlock(skill.id)}
                               >
                                 Unlock
-                              </SystemButton>
+                              </Button>
                             ) : (
-                              <SystemButton 
+                              <Button 
                                 variant="contained" 
                                 color="primary" 
                                 fullWidth
+                                startIcon={<AddIcon />}
                                 disabled={skill.level >= skill.maxLevel}
                                 onClick={() => handleSkillLevelUp(skill.id)}
                               >
                                 Level Up
-                              </SystemButton>
+                              </Button>
                             )}
                           </Box>
                         </Box>
-                      </Box>
+                      </HolographicCard>
                     </Grid>
                   ))}
                 </Grid>
-              </SystemPanel>
+              </Box>
             )}
             
             {/* Titles Tab */}
-            {tabValue === 2 && (
-              <SystemPanel title="Titles" height="auto">
+            {tabValue === 3 && (
+              <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+                <Typography variant="h5" className="section-title">
+                  Titles & Achievements
+                </Typography>
+                
                 <List>
                   {titles.map((title) => (
                     <ListItem
                       key={title.id}
                       sx={{
                         mb: 2,
-                        bgcolor: title.acquired ? 'rgba(123, 104, 238, 0.1)' : 'rgba(0, 0, 0, 0.2)',
-                        borderRadius: 1,
+                        p: 2,
+                        backgroundColor: title.acquired ? 'rgba(66, 135, 245, 0.1)' : 'rgba(10, 10, 15, 0.5)',
+                        borderRadius: 2,
                         border: '1px solid',
-                        borderColor: title.acquired ? 'rgba(123, 104, 238, 0.3)' : 'rgba(255, 255, 255, 0.1)',
+                        borderColor: title.acquired ? 'rgba(66, 135, 245, 0.5)' : 'rgba(255, 255, 255, 0.1)',
                       }}
                       secondaryAction={
                         <Chip 
-                          icon={title.acquired ? <StarIcon /> : <StarBorderIcon />}
+                          icon={title.acquired ? <StarIcon /> : <LockIcon />}
                           label={title.acquired ? "Acquired" : "Locked"} 
                           color={title.acquired ? "primary" : "default"}
                           variant={title.acquired ? "filled" : "outlined"}
+                          sx={{
+                            backgroundColor: title.acquired ? 'rgba(66, 135, 245, 0.2)' : 'transparent',
+                            borderColor: title.acquired ? 'rgba(66, 135, 245, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+                          }}
                         />
                       }
                     >
                       <ListItemText
                         primary={
-                          <Typography variant="h6">{title.name}</Typography>
+                          <Typography variant="h6" className="quest-title" sx={{ 
+                            color: title.acquired ? '#4287f5' : '#e0e0e0',
+                            textShadow: title.acquired ? '0 0 8px rgba(66, 135, 245, 0.6)' : 'none'
+                          }}>
+                            {title.name}
+                          </Typography>
                         }
                         secondary={
                           <>
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="body2" color="#e0e0e0" sx={{ mt: 1 }}>
                               {title.description}
                             </Typography>
                             {title.acquired && (
-                              <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+                              <Typography variant="body2" color="#4287f5" sx={{ mt: 1, fontWeight: 'bold' }}>
                                 Bonus: {title.bonus}
                               </Typography>
                             )}
@@ -552,7 +671,88 @@ const Dashboard = () => {
                     </ListItem>
                   ))}
                 </List>
-              </SystemPanel>
+              </Box>
+            )}
+            
+            {/* Dungeon Keys Tab */}
+            {tabValue === 4 && (
+              <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+                <Typography variant="h5" className="section-title">
+                  Dungeon Keys
+                </Typography>
+                
+                <Grid container spacing={3} className="grid-container">
+                  {dungeonKeys.map((key) => (
+                    <Grid item xs={12} sm={6} md={4} key={key.id}>
+                      <HolographicCard className="card-container">
+                        <Box className="card-content" p={2}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h6" className="quest-title">
+                              {key.name}
+                            </Typography>
+                            <Chip 
+                              label={key.rank} 
+                              size="small"
+                              sx={{ 
+                                backgroundColor: getRankColor(key.rank),
+                                color: '#fff',
+                                fontWeight: 'bold'
+                              }}
+                            />
+                          </Box>
+                          
+                          <Typography variant="body2" className="quest-description" mb={2}>
+                            {key.description}
+                          </Typography>
+                          
+                          <Box sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            p: 1.5,
+                            borderRadius: 1,
+                            backgroundColor: 'rgba(10, 10, 15, 0.5)',
+                            mb: 2
+                          }}>
+                            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                              <KeyIcon sx={{ mr: 1, fontSize: '1rem' }} />
+                              Available: {key.count}
+                            </Typography>
+                            
+                            {key.cooldown > 0 && (
+                              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                                <AccessTimeIcon sx={{ mr: 1, fontSize: '1rem' }} />
+                                Cooldown: {key.cooldown}h
+                              </Typography>
+                            )}
+                          </Box>
+                          
+                          <Button 
+                            variant="contained" 
+                            color="primary"
+                            fullWidth
+                            disabled={key.count <= 0}
+                            onClick={() => handleUseKey(key.id)}
+                          >
+                            Use Key
+                          </Button>
+                        </Box>
+                      </HolographicCard>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+            
+            {/* Habits Tab */}
+            {tabValue === 5 && (
+              <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+                <Typography variant="h5" className="section-title">
+                  Habits
+                </Typography>
+                
+                <HabitTracker />
+              </Box>
             )}
           </Box>
         </Grid>

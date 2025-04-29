@@ -1,4 +1,5 @@
 import mockAuthService from './mockService';
+import databaseService from './databaseService';
 
 // Direct implementation using mock service without any conditional logic
 const authService = {
@@ -8,10 +9,12 @@ const authService = {
       console.log('Auth Service: Registering user', userData.email);
       const result = await mockAuthService.register(userData);
       
-      // Store token in localStorage
+      // Store token and user data using database service
       if (result.token) {
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
+        databaseService.saveAuthData({
+          token: result.token,
+          user: result.user
+        });
       }
       
       return result;
@@ -27,16 +30,17 @@ const authService = {
       console.log('Auth Service: Logging in user', credentials.email);
       
       // Clear any existing auth data first to prevent conflicts
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      databaseService.clearAuthData();
       
       const result = await mockAuthService.login(credentials);
       
-      // Store token in localStorage
+      // Store token and user data using database service
       if (result.token) {
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-        console.log('Auth Service: Login successful, token and user stored in localStorage');
+        databaseService.saveAuthData({
+          token: result.token,
+          user: result.user
+        });
+        console.log('Auth Service: Login successful, token and user stored');
       } else {
         console.error('Auth Service: Login response missing token');
       }
@@ -51,53 +55,14 @@ const authService = {
   // Logout user
   logout: () => {
     console.log('Auth Service: Logging out user');
-    
-    // Save current user data to soloLevelingUsers before removing from localStorage
-    try {
-      const currentUser = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-      
-      if (currentUser) {
-        const user = JSON.parse(currentUser);
-        const savedUsers = JSON.parse(localStorage.getItem('soloLevelingUsers') || '[]');
-        
-        // Check if user already exists in saved users
-        const existingUserIndex = savedUsers.findIndex(u => u._id === user._id || u.email === user.email);
-        
-        if (existingUserIndex !== -1) {
-          // Update existing user
-          savedUsers[existingUserIndex] = { ...savedUsers[existingUserIndex], ...user };
-        } else {
-          // Add new user
-          savedUsers.push(user);
-        }
-        
-        localStorage.setItem('soloLevelingUsers', JSON.stringify(savedUsers));
-        console.log('Auth Service: User data saved before logout');
-      }
-    } catch (error) {
-      console.error('Error saving user data before logout:', error);
-    }
-    
-    // Remove auth data from localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    databaseService.clearAuthData();
   },
 
   // Get current user
   getCurrentUser: async () => {
     try {
       console.log('Auth Service: Getting current user');
-      const user = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-      
-      if (!user || !token) {
-        console.log('No user logged in yet');
-        // Return a successful response with null user instead of throwing an error
-        return { user: null, token: null };
-      }
-      
-      return { user: JSON.parse(user), token };
+      return await databaseService.getCurrentUser();
     } catch (error) {
       console.error('Get current user error:', error);
       // Return a successful response with null user instead of throwing an error
@@ -111,10 +76,12 @@ const authService = {
       console.log('Auth Service: Using demo login');
       const result = await mockAuthService.demoLogin();
       
-      // Store token in localStorage
+      // Store token and user data using database service
       if (result.token) {
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
+        databaseService.saveAuthData({
+          token: result.token,
+          user: result.user
+        });
       }
       
       return result;

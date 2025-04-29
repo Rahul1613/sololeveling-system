@@ -1,0 +1,309 @@
+/* Global Theme CSS for Solo Leveling System */
+/* This file overrides all existing styles to enforce the black and white theme with blue glowing borders */
+
+/* Base styles for the entire application */
+html, body, #root {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(66, 135, 245, 0.7);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+p, span, div {
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+/* Links */
+a {
+  color: #4287f5;
+  text-decoration: none;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+a:hover {
+  color: #6ba1ff;
+  text-shadow: 0 0 8px rgba(66, 135, 245, 0.8);
+}
+
+/* Buttons */
+button, .MuiButton-root {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(66, 135, 245, 0.5) !important;
+  box-shadow: 0 0 10px rgba(66, 135, 245, 0.5) !important;
+  transition: all 0.3s ease !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px !important;
+  border-radius: 4px !important;
+}
+
+button:hover, .MuiButton-root:hover {
+  background-color: rgba(20, 20, 20, 0.9) !important;
+  box-shadow: 0 0 15px rgba(66, 135, 245, 0.8) !important;
+  transform: translateY(-2px);
+}
+
+button:active, .MuiButton-root:active {
+  transform: translateY(1px);
+}
+
+/* Input fields */
+input, textarea, select, .MuiInputBase-root, .MuiOutlinedInput-root, .MuiFilledInput-root, .MuiInput-root {
+  background-color: rgba(20, 20, 20, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(66, 135, 245, 0.5) !important;
+  box-shadow: 0 0 5px rgba(66, 135, 245, 0.3) !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+}
+
+input:focus, textarea:focus, select:focus, .MuiInputBase-root:focus, .MuiOutlinedInput-root:focus {
+  border: 1px solid rgba(66, 135, 245, 0.8) !important;
+  box-shadow: 0 0 10px rgba(66, 135, 245, 0.5) !important;
+}
+
+/* Labels */
+label, .MuiFormLabel-root, .MuiInputLabel-root {
+  color: #cccccc !important;
+  font-weight: 500 !important;
+}
+
+/* Cards and Panels */
+.MuiPaper-root, .MuiCard-root {
+  background-color: rgba(10, 10, 15, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(66, 135, 245, 0.5) !important;
+  box-shadow: 0 0 15px rgba(66, 135, 245, 0.3) !important;
+  border-radius: 8px !important;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease !important;
+}
+
+.MuiPaper-root:hover, .MuiCard-root:hover {
+  box-shadow: 0 0 20px rgba(66, 135, 245, 0.5) !important;
+  transform: translateY(-3px);
+}
+
+/* Progress bars */
+.MuiLinearProgress-root {
+  background-color: rgba(50, 50, 50, 0.5) !important;
+  height: 8px !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+}
+
+.MuiLinearProgress-bar {
+  background-color: #4287f5 !important;
+  box-shadow: 0 0 10px rgba(66, 135, 245, 0.8) !important;
+}
+
+/* Dividers */
+.MuiDivider-root {
+  background-color: rgba(66, 135, 245, 0.3) !important;
+  box-shadow: 0 0 5px rgba(66, 135, 245, 0.2) !important;
+  margin: 16px 0 !important;
+}
+
+/* Tables */
+.MuiTable-root {
+  background-color: rgba(10, 10, 15, 0.8) !important;
+}
+
+.MuiTableCell-root {
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(66, 135, 245, 0.3) !important;
+}
+
+.MuiTableRow-root:hover {
+  background-color: rgba(66, 135, 245, 0.1) !important;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(66, 135, 245, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(66, 135, 245, 0.8);
+}
+
+/* Icons */
+.MuiSvgIcon-root {
+  color: #4287f5 !important;
+  filter: drop-shadow(0 0 3px rgba(66, 135, 245, 0.5)) !important;
+}
+
+/* Chips */
+.MuiChip-root {
+  background-color: rgba(20, 20, 20, 0.8) !important;
+  border: 1px solid rgba(66, 135, 245, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* Alerts */
+.MuiAlert-root {
+  background-color: rgba(10, 10, 15, 0.9) !important;
+  border: 1px solid rgba(66, 135, 245, 0.5) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(66, 135, 245, 0.3) !important;
+}
+
+/* Dialogs */
+.MuiDialog-paper {
+  background-color: rgba(10, 10, 15, 0.95) !important;
+  border: 1px solid rgba(66, 135, 245, 0.8) !important;
+  box-shadow: 0 0 20px rgba(66, 135, 245, 0.5) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Layout structure improvements */
+.container-section {
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  background-color: rgba(10, 10, 15, 0.7);
+  border: 1px solid rgba(66, 135, 245, 0.5);
+  box-shadow: 0 0 15px rgba(66, 135, 245, 0.3);
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+  text-shadow: 0 0 15px rgba(66, 135, 245, 0.8);
+  letter-spacing: 1px;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(66, 135, 245, 0.5);
+  text-shadow: 0 0 10px rgba(66, 135, 245, 0.7);
+}
+
+.card-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-content {
+  flex: 1;
+  padding: 16px;
+}
+
+.card-actions {
+  padding: 8px 16px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grid-container {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.quest-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quest-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(66, 135, 245, 0.4) !important;
+}
+
+.quest-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #4287f5;
+  text-shadow: 0 0 8px rgba(66, 135, 245, 0.6);
+}
+
+.quest-description {
+  margin-bottom: 16px;
+  color: #e0e0e0;
+}
+
+.quest-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: #cccccc;
+}
+
+.quest-info-icon {
+  margin-right: 8px;
+  font-size: 1rem;
+}
+
+.quest-rewards {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(66, 135, 245, 0.3);
+}
+
+.reward-chip {
+  margin-right: 8px;
+  margin-bottom: 8px;
+  background-color: rgba(20, 20, 20, 0.8) !important;
+  border: 1px solid rgba(66, 135, 245, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .container-section {
+    padding: 16px;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+  }
+}

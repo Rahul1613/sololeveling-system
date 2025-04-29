@@ -17,7 +17,6 @@ import {
   DialogActions,
   IconButton,
   Collapse,
-  LinearProgress
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -41,24 +40,24 @@ const PunishmentQuestCard = styled(Card)(({ theme }) => ({
   boxShadow: '0 4px 20px rgba(156, 39, 176, 0.2)',
   '&:hover': {
     transform: 'translateY(-5px)',
-    boxShadow: '0 12px 28px rgba(156, 39, 176, 0.3)'
-  }
+    boxShadow: '0 12px 28px rgba(156, 39, 176, 0.3)',
+  },
 }));
 
 const QuestTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 'bold',
   marginBottom: theme.spacing(1),
-  color: '#9c27b0'
+  color: '#9c27b0',
 }));
 
 const QuestDescription = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(2),
-  color: theme.palette.text.secondary
+  color: theme.palette.text.secondary,
 }));
 
 const RewardChip = styled(Chip)(({ theme }) => ({
   margin: theme.spacing(0.5),
-  fontWeight: 'bold'
+  fontWeight: 'bold',
 }));
 
 const PenaltyChip = styled(Chip)(({ theme }) => ({
@@ -66,7 +65,7 @@ const PenaltyChip = styled(Chip)(({ theme }) => ({
   fontWeight: 'bold',
   backgroundColor: 'rgba(156, 39, 176, 0.1)',
   borderColor: 'rgba(156, 39, 176, 0.5)',
-  color: '#9c27b0'
+  color: '#9c27b0',
 }));
 
 const ExpandMore = styled((props) => {
@@ -107,31 +106,31 @@ const PunishmentQuestList = ({ quests = [] }) => {
 
   // Handle card expansion
   const handleExpandClick = (questId) => {
-    setExpanded(prev => ({ ...prev, [questId]: !prev[questId] }));
+    setExpanded((prev) => ({ ...prev, [questId]: !prev[questId] }));
   };
 
   // Format difficulty for display
   const formatDifficulty = (difficulty) => {
     if (!difficulty) return 'Unknown';
-    
+
     const difficultyColors = {
-      'easy': '#4CAF50',
-      'medium': '#FF9800',
-      'hard': '#F44336',
-      'very-hard': '#9C27B0'
+      easy: '#4CAF50',
+      medium: '#FF9800',
+      hard: '#F44336',
+      'very-hard': '#9C27B0',
     };
-    
+
     const difficultyText = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-    
+
     return (
-      <Chip 
-        label={difficultyText} 
-        size="small" 
-        sx={{ 
+      <Chip
+        label={difficultyText}
+        size="small"
+        sx={{
           backgroundColor: difficultyColors[difficulty] || '#757575',
           color: 'white',
-          fontWeight: 'bold'
-        }} 
+          fontWeight: 'bold',
+        }}
       />
     );
   };
@@ -139,25 +138,36 @@ const PunishmentQuestList = ({ quests = [] }) => {
   // Calculate time remaining until deadline
   const calculateTimeRemaining = (deadline) => {
     if (!deadline) return 'No deadline';
-    
+
     const deadlineTime = new Date(deadline);
     const now = new Date();
     const diffMs = deadlineTime - now;
-    
+
     if (diffMs <= 0) return 'Expired';
-    
+
     const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     return `${diffHrs}h ${diffMins}m`;
   };
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <ErrorOutlineIcon sx={{ color: '#9c27b0', mr: 1 }} />
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
+          <Typography
+            variant="h5"
+            component="h2"
+            sx={{ fontWeight: 'bold', color: '#9c27b0' }}
+          >
             Punishment Quests
           </Typography>
         </Box>
@@ -175,39 +185,54 @@ const PunishmentQuestList = ({ quests = [] }) => {
             <Grid item xs={12} sm={6} md={4} key={quest._id}>
               <PunishmentQuestCard>
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <QuestTitle variant="h6">
-                      {quest.title}
-                    </QuestTitle>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      mb: 2,
+                    }}
+                  >
+                    <QuestTitle variant="h6">{quest.title}</QuestTitle>
                     {formatDifficulty(quest.difficulty)}
                   </Box>
-                  
+
                   <QuestDescription variant="body2">
                     {quest.description}
                   </QuestDescription>
-                  
+
                   <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mb: 0.5,
+                      }}
+                    >
                       <Typography variant="body2" color="secondary">
                         Time Remaining: {calculateTimeRemaining(quest.deadline)}
                       </Typography>
                       <AccessTimeIcon fontSize="small" sx={{ color: 'secondary.main' }} />
                     </Box>
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <AccessTimeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                    <AccessTimeIcon
+                      fontSize="small"
+                      sx={{ mr: 1, color: 'text.secondary' }}
+                    />
                     <Typography variant="body2" color="text.secondary">
                       {quest.timeEstimate}
                     </Typography>
                   </Box>
-                  
+
                   <Divider sx={{ my: 2 }} />
-                  
+
                   <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
                     Rewards:
                   </Typography>
-                  
+
                   <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                     <RewardChip
                       size="small"
@@ -233,13 +258,16 @@ const PunishmentQuestList = ({ quests = [] }) => {
                       />
                     )}
                   </Box>
-                  
+
                   {quest.penalty && (
                     <>
-                      <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 'bold', color: '#9c27b0' }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ mt: 2, mb: 1, fontWeight: 'bold', color: '#9c27b0' }}
+                      >
                         Additional Penalties if Not Completed:
                       </Typography>
-                      
+
                       <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                         {quest.penalty.experience < 0 && (
                           <PenaltyChip
@@ -269,18 +297,18 @@ const PunishmentQuestList = ({ quests = [] }) => {
                     </>
                   )}
                 </CardContent>
-                
+
                 <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
-                  <Button 
-                    variant="contained" 
-                    color="secondary" 
+                  <Button
+                    variant="contained"
+                    color="secondary"
                     size="small"
                     onClick={() => handleOpenConfirmDialog(quest._id)}
                     disabled={quest.status !== 'available'}
                   >
                     Accept Punishment
                   </Button>
-                  
+
                   <ExpandMore
                     expand={expanded[quest._id] || false}
                     onClick={() => handleExpandClick(quest._id)}
@@ -290,7 +318,7 @@ const PunishmentQuestList = ({ quests = [] }) => {
                     <ExpandMoreIcon />
                   </ExpandMore>
                 </CardActions>
-                
+
                 <Collapse in={expanded[quest._id] || false} timeout="auto" unmountOnExit>
                   <CardContent>
                     <Typography paragraph variant="subtitle2" sx={{ fontWeight: 'bold' }}>
@@ -302,12 +330,17 @@ const PunishmentQuestList = ({ quests = [] }) => {
                     <Typography paragraph variant="body2">
                       Rank: {quest.requirements.rank}+
                     </Typography>
-                    
-                    <Typography paragraph variant="subtitle2" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
+
+                    <Typography
+                      paragraph
+                      variant="subtitle2"
+                      sx={{ fontWeight: 'bold', color: 'secondary.main' }}
+                    >
                       Warning:
                     </Typography>
                     <Typography paragraph variant="body2" color="secondary.main">
-                      This is a punishment quest. Ignoring it will result in additional penalties. Complete it to atone for your previous failure.
+                      This is a punishment quest. Ignoring it will result in additional penalties.
+                      Complete it to atone for your previous failure.
                     </Typography>
                   </CardContent>
                 </Collapse>
@@ -334,8 +367,8 @@ const PunishmentQuestList = ({ quests = [] }) => {
         aria-describedby="alert-dialog-description"
         PaperProps={{
           sx: {
-            borderLeft: '4px solid #9c27b0'
-          }
+            borderLeft: '4px solid #9c27b0',
+          },
         }}
       >
         <DialogTitle id="alert-dialog-title" sx={{ color: '#9c27b0' }}>
@@ -346,17 +379,19 @@ const PunishmentQuestList = ({ quests = [] }) => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            This punishment quest was assigned due to a previous failure. Completing it will allow you to atone, but ignoring it will result in additional penalties. Do you accept this punishment?
+            This punishment quest was assigned due to a previous failure. Completing it will
+            allow you to atone, but ignoring it will result in additional penalties. Do you
+            accept this punishment?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseConfirmDialog} color="primary">
             Not Now
           </Button>
-          <Button 
-            onClick={() => handleAcceptQuest(confirmDialog.questId)} 
-            color="secondary" 
-            variant="contained" 
+          <Button
+            onClick={() => handleAcceptQuest(confirmDialog.questId)}
+            color="secondary"
+            variant="contained"
             autoFocus
           >
             Accept Punishment

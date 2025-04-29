@@ -1,0 +1,382 @@
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+  Box, 
+  Typography, 
+  Grid, 
+  Container, 
+  CircularProgress,
+  Alert,
+  Paper,
+  Button,
+  useMediaQuery
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { 
+  getMarketplaceItems, 
+  getFeaturedItems, 
+  getRecommendedItems, 
+  reset 
+} from '../redux/slices/marketplaceSlice';
+import { getCurrentUser } from '../redux/slices/authSlice';
+import databaseService from '../api/databaseService';
+
+// Styled components
+const MarketplaceContainer = styled(Container)(({ theme }) => ({
+  paddingTop: theme.spacing(4),
+  paddingBottom: theme.spacing(8),
+}));
+
+const MarketplaceHeader = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  textAlign: 'center',
+}));
+
+const MarketplaceTitle = styled(Typography)(({ theme }) => ({
+  color: '#5FD1F9',
+  fontWeight: 'bold',
+  textTransform: 'uppercase',
+  letterSpacing: '3px',
+  marginBottom: theme.spacing(1),
+  textShadow: '0 0 10px rgba(95, 209, 249, 0.5)',
+}));
+
+const MarketplaceSubtitle = styled(Typography)(({ theme }) => ({
+  color: '#eaf6ff',
+  marginBottom: theme.spacing(2),
+}));
+
+const ItemsContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  borderRadius: theme.spacing(1),
+  background: 'rgba(10, 25, 41, 0.7)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(95, 209, 249, 0.3)',
+  boxShadow: '0 0 15px rgba(95, 209, 249, 0.2)',
+}));
+
+const NoItemsMessage = styled(Typography)(({ theme }) => ({
+  textAlign: 'center',
+  color: '#eaf6ff',
+  padding: theme.spacing(4),
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  background: 'rgba(0, 0, 0, 0.8)',
+  border: '1px solid rgba(66, 135, 245, 0.5)',
+  boxShadow: '0 0 10px rgba(66, 135, 245, 0.5)',
+  color: '#ffffff',
+  '&:hover': {
+    background: 'rgba(20, 20, 20, 0.9)',
+    boxShadow: '0 0 15px rgba(66, 135, 245, 0.8)',
+  },
+  margin: theme.spacing(1),
+}));
+
+/**
+ * Simplified Marketplace component to prevent freezing issues
+ */
+const Marketplace = () => {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const { 
+    items, 
+    featuredItems, 
+    recommendedItems, 
+    isLoading, 
+    isError, 
+    message 
+  } = useSelector((state) => state.marketplace);
+
+  const isDesktop = useMediaQuery('(min-width:900px)');
+  
+  // Basic state for the component
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Load data in a controlled, sequential manner
+  useEffect(() => {
+    let isMounted = true;
+    let timeoutIds = [];
+
+    const loadData = () => {
+      // Load marketplace items
+      const id1 = setTimeout(() => {
+        if (isMounted) {
+          try {
+            dispatch(getMarketplaceItems());
+            console.log("Marketplace items loaded");
+          } catch (err) {
+            console.error("Error loading marketplace items:", err);
+            if (isMounted) setError("Failed to load marketplace items");
+          }
+        }
+      }, 100);
+      timeoutIds.push(id1);
+
+      // Load featured items after a delay
+      const id2 = setTimeout(() => {
+        if (isMounted) {
+          try {
+            dispatch(getFeaturedItems());
+            console.log("Featured items loaded");
+          } catch (err) {
+            console.error("Error loading featured items:", err);
+          }
+        }
+      }, 1000);
+      timeoutIds.push(id2);
+
+      // Load recommended items after another delay
+      const id3 = setTimeout(() => {
+        if (isMounted) {
+          try {
+            dispatch(getRecommendedItems());
+            console.log("Recommended items loaded");
+          } catch (err) {
+            console.error("Error loading recommended items:", err);
+          }
+        }
+      }, 2000);
+      timeoutIds.push(id3);
+
+      // Load user data after another delay
+      const id4 = setTimeout(() => {
+        if (isMounted) {
+          try {
+            dispatch(getCurrentUser());
+            console.log("User data loaded");
+            setIsDataLoaded(true);
+          } catch (err) {
+            console.error("Error loading user data:", err);
+          }
+        }
+      }, 3000);
+      timeoutIds.push(id4);
+    };
+
+    loadData();
+
+    // Cleanup function to prevent memory leaks and cancel pending operations
+    return () => {
+      isMounted = false;
+      timeoutIds.forEach(id => clearTimeout(id));
+      dispatch(reset());
+    };
+  }, [dispatch]);
+
+  // Render loading state
+  if (isLoading && !isDataLoaded) {
+    return (
+      <MarketplaceContainer>
+        <MarketplaceHeader>
+          <MarketplaceTitle variant="h4">
+            Marketplace
+          </MarketplaceTitle>
+          <MarketplaceSubtitle variant="subtitle1">
+            Loading marketplace data...
+          </MarketplaceSubtitle>
+        </MarketplaceHeader>
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress size={60} sx={{ color: '#5FD1F9' }} />
+        </Box>
+      </MarketplaceContainer>
+    );
+  }
+
+  // Render error state
+  if (isError || error) {
+    return (
+      <MarketplaceContainer>
+        <MarketplaceHeader>
+          <MarketplaceTitle variant="h4">
+            Marketplace
+          </MarketplaceTitle>
+          <MarketplaceSubtitle variant="subtitle1">
+            Something went wrong
+          </MarketplaceSubtitle>
+        </MarketplaceHeader>
+        <Alert 
+          severity="error" 
+          sx={{ 
+            mb: 4, 
+            backgroundColor: 'rgba(211, 47, 47, 0.1)', 
+            color: '#ff5252',
+            border: '1px solid rgba(211, 47, 47, 0.3)'
+          }}
+        >
+          {message || error || "Failed to load marketplace data. Please try again later."}
+        </Alert>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <StyledButton 
+            onClick={() => window.location.reload()}
+            variant="contained"
+          >
+            Refresh Page
+          </StyledButton>
+        </Box>
+      </MarketplaceContainer>
+    );
+  }
+
+  // Render marketplace with basic items
+  return (
+    <MarketplaceContainer>
+      <MarketplaceHeader>
+        <MarketplaceTitle variant={isDesktop ? "h3" : "h4"}>
+          Marketplace
+        </MarketplaceTitle>
+        <MarketplaceSubtitle variant="subtitle1">
+          Discover and acquire powerful items for your journey
+        </MarketplaceSubtitle>
+      </MarketplaceHeader>
+
+      {/* Featured Items Section */}
+      <Paper 
+        sx={{ 
+          p: 3, 
+          mb: 4, 
+          background: 'rgba(10, 25, 41, 0.7)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(95, 209, 249, 0.3)',
+          boxShadow: '0 0 15px rgba(95, 209, 249, 0.2)',
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            color: '#5FD1F9', 
+            mb: 2, 
+            textAlign: 'center',
+            fontWeight: 'bold'
+          }}
+        >
+          Featured Items
+        </Typography>
+        
+        {featuredItems && featuredItems.length > 0 ? (
+          <Grid container spacing={3}>
+            {featuredItems.slice(0, 4).map((item, index) => (
+              <Grid item xs={12} sm={6} md={3} key={item._id || index}>
+                <Paper 
+                  sx={{ 
+                    p: 2, 
+                    height: '100%',
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    border: '1px solid rgba(95, 209, 249, 0.3)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-5px)',
+                      boxShadow: '0 0 15px rgba(95, 209, 249, 0.5)',
+                    }
+                  }}
+                >
+                  <Typography variant="h6" sx={{ color: '#5FD1F9', mb: 1 }}>
+                    {item.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#eaf6ff', mb: 2, flexGrow: 1 }}>
+                    {item.description}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
+                      {item.price} G
+                    </Typography>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: 
+                          item.rarity === 'legendary' ? '#FFD700' : 
+                          item.rarity === 'epic' ? '#A335EE' : 
+                          item.rarity === 'rare' ? '#0070DD' : 
+                          item.rarity === 'uncommon' ? '#1EFF00' : 
+                          '#BEBEBE',
+                        textTransform: 'uppercase',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {item.rarity}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <NoItemsMessage>No featured items available</NoItemsMessage>
+        )}
+      </Paper>
+
+      {/* All Items Section */}
+      <ItemsContainer>
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            color: '#5FD1F9', 
+            mb: 3, 
+            textAlign: 'center',
+            fontWeight: 'bold'
+          }}
+        >
+          All Items
+        </Typography>
+        
+        {items && items.length > 0 ? (
+          <Grid container spacing={3}>
+            {items.slice(0, 8).map((item, index) => (
+              <Grid item xs={12} sm={6} md={3} key={item._id || index}>
+                <Paper 
+                  sx={{ 
+                    p: 2, 
+                    height: '100%',
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    border: '1px solid rgba(95, 209, 249, 0.3)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-5px)',
+                      boxShadow: '0 0 15px rgba(95, 209, 249, 0.5)',
+                    }
+                  }}
+                >
+                  <Typography variant="h6" sx={{ color: '#5FD1F9', mb: 1 }}>
+                    {item.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#eaf6ff', mb: 2, flexGrow: 1 }}>
+                    {item.description}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
+                      {item.price} G
+                    </Typography>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: 
+                          item.rarity === 'legendary' ? '#FFD700' : 
+                          item.rarity === 'epic' ? '#A335EE' : 
+                          item.rarity === 'rare' ? '#0070DD' : 
+                          item.rarity === 'uncommon' ? '#1EFF00' : 
+                          '#BEBEBE',
+                        textTransform: 'uppercase',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {item.rarity}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <NoItemsMessage>No items available</NoItemsMessage>
+        )}
+      </ItemsContainer>
+    </MarketplaceContainer>
+  );
+};
+
+export default Marketplace;

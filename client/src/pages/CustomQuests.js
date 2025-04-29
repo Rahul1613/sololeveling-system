@@ -7,10 +7,8 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete, CheckCircle, AccessTime } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
-import api from '../api/axios';
 import mockQuestService from '../api/mockQuestService';
 import HolographicCard from '../components/HolographicUI/HolographicCard';
-import Layout from '../components/Layout';
 
 const CustomQuests = () => {
   const { token } = useSelector(state => state.auth);
@@ -148,6 +146,8 @@ const CustomQuests = () => {
   
   const handleEdit = (quest) => {
     setEditingQuest(quest);
+    
+    // Populate form with quest data
     setFormData({
       title: quest.title,
       description: quest.description,
@@ -155,20 +155,23 @@ const CustomQuests = () => {
       requirements: quest.requirements,
       timeLimit: quest.timeLimit,
       requiresProof: quest.requiresProof,
-      proofType: quest.proofType,
-      verificationMethod: quest.verificationMethod,
-      category: quest.category,
+      proofType: quest.proofType || 'none',
+      verificationMethod: quest.verificationMethod || 'none',
+      category: quest.category || 'other',
       rewards: {
         experience: quest.rewards.experience,
         currency: quest.rewards.currency,
         statPoints: quest.rewards.statPoints
       }
     });
+    
     setOpenDialog(true);
   };
   
   const handleDelete = async (questId) => {
-    if (!window.confirm('Are you sure you want to delete this quest?')) return;
+    if (!window.confirm('Are you sure you want to delete this quest?')) {
+      return;
+    }
     
     try {
       setLoading(true);
@@ -176,12 +179,11 @@ const CustomQuests = () => {
       
       // In a real app, this would call an API endpoint
       // For the mock implementation, we'll just update the local state
-      // No need to call a service since we're just removing from local state
-      
-      setSuccess('Quest deleted successfully');
       setMyQuests(prev => prev.filter(q => q._id !== questId));
+      setSuccess('Quest deleted successfully');
+      
     } catch (err) {
-      setError(err.message || 'Failed to delete quest');
+      setError('Failed to delete quest');
       console.error(err);
     } finally {
       setLoading(false);
@@ -205,12 +207,13 @@ const CustomQuests = () => {
         statPoints: 0
       }
     });
+    
     setEditingQuest(null);
   };
   
   const handleDialogClose = () => {
-    setOpenDialog(false);
     resetForm();
+    setOpenDialog(false);
   };
   
   const acceptQuest = async (questId) => {
@@ -218,141 +221,169 @@ const CustomQuests = () => {
       setLoading(true);
       setError(null);
       
-      console.log('Accepting quest with ID:', questId);
+      // In a real app, this would call an API endpoint
+      // For the mock implementation, we'll just show a success message
       
-      // Use the mock service instead of the API endpoint
-      const response = await mockQuestService.acceptQuest(questId);
+      // Find the quest in the public quests
+      const quest = publicQuests.find(q => q._id === questId);
       
-      console.log('Accept quest response:', response);
-      
-      if (response.success) {
-        setSuccess('Quest accepted successfully! Check your active quests to start working on it.');
-        // Refresh the public quests list to show the quest as accepted
-        fetchPublicQuests();
+      if (quest) {
+        // Add it to active quests (this would be handled by the backend in a real app)
+        await mockQuestService.acceptQuest(questId);
+        
+        setSuccess(`You have accepted the quest: ${quest.title}`);
+      } else {
+        throw new Error('Quest not found');
       }
+      
     } catch (err) {
-      console.error('Error accepting quest:', err);
-      setError(err.message || 'Failed to accept quest');
+      setError('Failed to accept quest');
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
   
   const renderQuestCard = (quest, isOwner = false) => {
+    const getDifficultyColor = (difficulty) => {
+      switch(difficulty?.toLowerCase()) {
+        case 'easy': return '#4CAF50';
+        case 'medium': return '#FF9800';
+        case 'hard': return '#F44336';
+        case 'very-hard': return '#9C27B0';
+        default: return '#757575';
+      }
+    };
+    
+    const getCategoryIcon = (category) => {
+      switch(category?.toLowerCase()) {
+        case 'fitness': return '💪';
+        case 'study': return '📚';
+        case 'wellness': return '🧘';
+        case 'creative': return '🎨';
+        default: return '🎯';
+      }
+    };
+    
     return (
-      <HolographicCard key={quest._id} className="mb-4">
+      <HolographicCard className="quest-card" sx={{ mb: 3 }}>
         <Box p={3}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h5" component="h2" fontWeight="bold" color="primary">
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+            <Typography variant="h5" className="quest-title">
               {quest.title}
             </Typography>
             
             <Box>
               <Chip 
-                label={(quest.difficulty || 'unknown').toUpperCase()} 
-                color={
-                  quest.difficulty === 'easy' ? 'success' :
-                  quest.difficulty === 'medium' ? 'info' :
-                  quest.difficulty === 'hard' ? 'warning' : 'error'
-                }
+                label={quest.difficulty?.toUpperCase() || 'MEDIUM'}
                 size="small"
-                sx={{ mr: 1 }}
+                sx={{ 
+                  mr: 1, 
+                  backgroundColor: getDifficultyColor(quest.difficulty),
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}
+                className="reward-chip"
               />
               
               <Chip 
-                label={(quest.category || 'other').toUpperCase()}
-                color="secondary"
+                label={`${getCategoryIcon(quest.category)} ${(quest.category || 'other').toUpperCase()}`}
                 size="small"
+                sx={{ backgroundColor: 'rgba(20, 20, 20, 0.8)', color: 'white' }}
+                className="reward-chip"
               />
             </Box>
           </Box>
           
-          <Typography variant="body1" color="text.secondary" mb={2}>
-            {quest.description || 'No description provided'}
+          <Typography variant="body1" className="quest-description" mb={2}>
+            {quest.description}
           </Typography>
           
-          <Typography variant="body2" fontWeight="bold" color="text.primary" mb={1}>
-            Requirements:
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mb={2}>
-            {quest.requirements || 'No specific requirements'}
-          </Typography>
-          
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box>
-              <Typography variant="body2" fontWeight="bold" color="text.primary">
-                Rewards:
-              </Typography>
-              <Box display="flex" gap={2} mt={1}>
-                <Typography variant="body2" color="text.secondary">
-                  XP: {quest.rewards?.experience || 0}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Currency: {quest.rewards?.currency || 0}
-                </Typography>
-                {(quest.rewards?.statPoints || 0) > 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Stat Points: {quest.rewards?.statPoints || 0}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-            
-            <Box display="flex" alignItems="center">
-              <AccessTime sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-              <Typography variant="body2" color="text.secondary">
-                {quest.timeLimit || 24} hours
-              </Typography>
-            </Box>
+          <Box className="quest-info" mb={1}>
+            <AccessTime className="quest-info-icon" />
+            <Typography variant="body2">
+              Time Limit: {quest.timeLimit} hours
+            </Typography>
           </Box>
           
           {quest.requiresProof && (
-            <Box mb={2}>
-              <Chip 
-                icon={<CheckCircle fontSize="small" />}
-                label={`Requires ${quest.proofType || 'verification'} proof`}
-                variant="outlined"
-                size="small"
-              />
+            <Box className="quest-info" mb={1}>
+              <CheckCircle className="quest-info-icon" />
+              <Typography variant="body2">
+                Requires {quest.proofType || 'verification'}
+              </Typography>
             </Box>
           )}
           
           <Divider sx={{ my: 2 }} />
           
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            {isOwner ? (
-              <Box>
-                <IconButton 
-                  color="primary" 
-                  onClick={() => handleEdit(quest)}
-                  size="small"
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton 
-                  color="error" 
-                  onClick={() => handleDelete(quest._id)}
-                  size="small"
-                >
-                  <Delete />
-                </IconButton>
-              </Box>
-            ) : (
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  Created by: {quest.createdBy?.username || 'Unknown'}
-                </Typography>
-              </Box>
-            )}
+          <Box className="quest-rewards">
+            <Typography variant="subtitle2" fontWeight="bold" mb={1}>
+              Rewards:
+            </Typography>
             
-            <Button 
-              variant="contained" 
-              color="primary"
-              size="small"
-              onClick={() => acceptQuest(quest._id)}
-            >
-              Accept Quest
-            </Button>
+            <Box display="flex" flexWrap="wrap">
+              <Chip 
+                label={`${quest.rewards?.experience || 0} XP`}
+                size="small"
+                color="primary"
+                variant="outlined"
+                sx={{ mr: 1, mb: 1 }}
+                className="reward-chip"
+              />
+              
+              <Chip 
+                label={`${quest.rewards?.currency || 0} Gold`}
+                size="small"
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 1, mb: 1 }}
+                className="reward-chip"
+              />
+              
+              {quest.rewards?.statPoints > 0 && (
+                <Chip 
+                  label={`${quest.rewards.statPoints} Stat Points`}
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                  sx={{ mr: 1, mb: 1 }}
+                  className="reward-chip"
+                />
+              )}
+            </Box>
+          </Box>
+          
+          <Box display="flex" justifyContent="space-between" mt={3}>
+            {isOwner ? (
+              <>
+                <Button 
+                  variant="contained" 
+                  color="primary"
+                  startIcon={<Edit />}
+                  onClick={() => handleEdit(quest)}
+                >
+                  Edit
+                </Button>
+                
+                <Button 
+                  variant="outlined" 
+                  color="error"
+                  startIcon={<Delete />}
+                  onClick={() => handleDelete(quest._id)}
+                >
+                  Delete
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="contained" 
+                color="primary"
+                onClick={() => acceptQuest(quest._id)}
+              >
+                Accept Quest
+              </Button>
+            )}
           </Box>
         </Box>
       </HolographicCard>
@@ -360,295 +391,313 @@ const CustomQuests = () => {
   };
   
   return (
-    <Layout>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box mb={4} display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h4" component="h1" fontWeight="bold" color="primary">
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box className="container-section">
+        {/* Page Title */}
+        <Box className="flex-between" sx={{ mb: 3 }}>
+          <Typography variant="h4" component="h1" className="page-title" sx={{ mb: 0 }}>
             Custom Quests
           </Typography>
           
-          <Button
-            variant="contained"
+          <Button 
+            variant="contained" 
             color="primary"
             startIcon={<Add />}
             onClick={() => setOpenDialog(true)}
           >
-            Create New Quest
+            Create Quest
           </Button>
         </Box>
         
+        <Divider sx={{ mb: 3 }} />
+        
+        {/* Error and Success Messages */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
         )}
         
         {success && (
-          <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+          <Alert severity="success" sx={{ mb: 3 }}>
             {success}
           </Alert>
         )}
         
-        <Box mb={6}>
-          <Typography variant="h5" component="h2" fontWeight="bold" color="primary" mb={3}>
+        {/* Loading Indicator */}
+        {loading && (
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress />
+          </Box>
+        )}
+        
+        {/* My Custom Quests Section */}
+        <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)', mb: 4 }}>
+          <Typography variant="h5" className="section-title">
             My Custom Quests
           </Typography>
           
-          {loading && myQuests.length === 0 ? (
-            <Box display="flex" justifyContent="center" py={4}>
-              <CircularProgress />
-            </Box>
-          ) : myQuests.length > 0 ? (
-            <Grid container spacing={3}>
-              {myQuests.map(quest => (
-                <Grid item xs={12} md={6} key={quest._id}>
-                  {renderQuestCard(quest, true)}
-                </Grid>
-              ))}
-            </Grid>
+          {myQuests.length > 0 ? (
+            myQuests.map(quest => renderQuestCard(quest, true))
           ) : (
-            <Paper sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-              <Typography variant="body1" color="text.secondary" textAlign="center">
-                You haven't created any custom quests yet. Click the "Create New Quest" button to get started.
+            <Box sx={{ textAlign: 'center', py: 4, backgroundColor: 'rgba(10, 10, 15, 0.5)', borderRadius: 2, mt: 2 }}>
+              <Typography variant="body1" color="#e0e0e0">
+                You haven't created any custom quests yet.
               </Typography>
-            </Paper>
+              <Button 
+                variant="contained" 
+                color="primary"
+                startIcon={<Add />}
+                onClick={() => setOpenDialog(true)}
+                sx={{ mt: 2 }}
+              >
+                Create Your First Quest
+              </Button>
+            </Box>
           )}
         </Box>
         
-        <Box>
-          <Typography variant="h5" component="h2" fontWeight="bold" color="primary" mb={3}>
+        {/* Public Custom Quests Section */}
+        <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+          <Typography variant="h5" className="section-title">
             Public Custom Quests
           </Typography>
           
-          {loading && publicQuests.length === 0 ? (
-            <Box display="flex" justifyContent="center" py={4}>
-              <CircularProgress />
-            </Box>
-          ) : publicQuests.length > 0 ? (
-            <Grid container spacing={3}>
-              {publicQuests.map(quest => (
-                <Grid item xs={12} md={6} key={quest._id}>
-                  {renderQuestCard(quest)}
-                </Grid>
-              ))}
-            </Grid>
+          {publicQuests.length > 0 ? (
+            publicQuests.map(quest => renderQuestCard(quest, false))
           ) : (
-            <Paper sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-              <Typography variant="body1" color="text.secondary" textAlign="center">
+            <Box sx={{ textAlign: 'center', py: 4, backgroundColor: 'rgba(10, 10, 15, 0.5)', borderRadius: 2, mt: 2 }}>
+              <Typography variant="body1" color="#e0e0e0">
                 No public custom quests available at the moment.
               </Typography>
-            </Paper>
+            </Box>
           )}
         </Box>
+      </Box>
+      
+      {/* Create/Edit Quest Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={handleDialogClose}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: 'rgba(10, 10, 15, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(66, 135, 245, 0.8)',
+            boxShadow: '0 0 20px rgba(66, 135, 245, 0.5)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid rgba(66, 135, 245, 0.3)' }}>
+          {editingQuest ? 'Edit Custom Quest' : 'Create Custom Quest'}
+        </DialogTitle>
         
-        {/* Create/Edit Quest Dialog */}
-        <Dialog 
-          open={openDialog} 
-          onClose={handleDialogClose}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {editingQuest ? 'Edit Custom Quest' : 'Create New Custom Quest'}
-          </DialogTitle>
-          
-          <DialogContent>
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Quest Title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    multiline
-                    rows={3}
-                    required
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Requirements"
-                    name="requirements"
-                    value={formData.requirements}
-                    onChange={handleChange}
-                    multiline
-                    rows={2}
-                    required
-                    helperText="Describe what needs to be done to complete this quest"
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Difficulty</InputLabel>
-                    <Select
-                      name="difficulty"
-                      value={formData.difficulty}
-                      onChange={handleChange}
-                      label="Difficulty"
-                    >
-                      <MenuItem value="easy">Easy</MenuItem>
-                      <MenuItem value="medium">Medium</MenuItem>
-                      <MenuItem value="hard">Hard</MenuItem>
-                      <MenuItem value="extreme">Extreme</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Category</InputLabel>
-                    <Select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      label="Category"
-                    >
-                      <MenuItem value="fitness">Fitness</MenuItem>
-                      <MenuItem value="learning">Learning</MenuItem>
-                      <MenuItem value="productivity">Productivity</MenuItem>
-                      <MenuItem value="social">Social</MenuItem>
-                      <MenuItem value="other">Other</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Experience Reward"
-                    name="rewards.experience"
-                    type="number"
-                    value={formData.rewards.experience}
-                    onChange={handleChange}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Currency Reward"
-                    name="rewards.currency"
-                    type="number"
-                    value={formData.rewards.currency}
-                    onChange={handleChange}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Stat Points Reward"
-                    name="rewards.statPoints"
-                    type="number"
-                    value={formData.rewards.statPoints}
-                    onChange={handleChange}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Time Limit (hours)"
-                    name="timeLimit"
-                    type="number"
-                    value={formData.timeLimit}
-                    onChange={handleChange}
-                    InputProps={{ inputProps: { min: 1, max: 168 } }}
-                    helperText="Time to complete the quest (1-168 hours)"
-                  />
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Requires Proof</InputLabel>
-                    <Select
-                      name="requiresProof"
-                      value={formData.requiresProof}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        requiresProof: e.target.value === 'true'
-                      }))}
-                      label="Requires Proof"
-                    >
-                      <MenuItem value="false">No</MenuItem>
-                      <MenuItem value="true">Yes</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                
-                {formData.requiresProof && (
-                  <>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Proof Type</InputLabel>
-                        <Select
-                          name="proofType"
-                          value={formData.proofType}
-                          onChange={handleChange}
-                          label="Proof Type"
-                        >
-                          <MenuItem value="none">None</MenuItem>
-                          <MenuItem value="video">Video</MenuItem>
-                          <MenuItem value="image">Image</MenuItem>
-                          <MenuItem value="gps">GPS</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Verification Method</InputLabel>
-                        <Select
-                          name="verificationMethod"
-                          value={formData.verificationMethod}
-                          onChange={handleChange}
-                          label="Verification Method"
-                        >
-                          <MenuItem value="none">None</MenuItem>
-                          <MenuItem value="manual">Manual</MenuItem>
-                          <MenuItem value="ai">AI</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  </>
-                )}
+        <DialogContent sx={{ py: 3 }}>
+          <Box component="form" noValidate>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Quest Title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
               </Grid>
-            </Box>
-          </DialogContent>
-          
-          <DialogActions>
-            <Button onClick={handleDialogClose}>Cancel</Button>
-            <Button 
-              onClick={handleSubmit}
-              variant="contained" 
-              color="primary"
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : (editingQuest ? 'Update' : 'Create')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </Layout>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  multiline
+                  rows={3}
+                  variant="outlined"
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Difficulty</InputLabel>
+                  <Select
+                    name="difficulty"
+                    value={formData.difficulty}
+                    onChange={handleChange}
+                    label="Difficulty"
+                  >
+                    <MenuItem value="easy">Easy</MenuItem>
+                    <MenuItem value="medium">Medium</MenuItem>
+                    <MenuItem value="hard">Hard</MenuItem>
+                    <MenuItem value="very-hard">Very Hard</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    label="Category"
+                  >
+                    <MenuItem value="fitness">Fitness</MenuItem>
+                    <MenuItem value="study">Study</MenuItem>
+                    <MenuItem value="wellness">Wellness</MenuItem>
+                    <MenuItem value="creative">Creative</MenuItem>
+                    <MenuItem value="other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Requirements"
+                  name="requirements"
+                  value={formData.requirements}
+                  onChange={handleChange}
+                  multiline
+                  rows={2}
+                  variant="outlined"
+                  helperText="Describe what needs to be done to complete this quest"
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }}>
+                  <Typography variant="subtitle2">Rewards</Typography>
+                </Divider>
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Experience Reward"
+                  name="rewards.experience"
+                  type="number"
+                  value={formData.rewards.experience}
+                  onChange={handleChange}
+                  InputProps={{ inputProps: { min: 0 } }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Currency Reward"
+                  name="rewards.currency"
+                  type="number"
+                  value={formData.rewards.currency}
+                  onChange={handleChange}
+                  InputProps={{ inputProps: { min: 0 } }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Stat Points Reward"
+                  name="rewards.statPoints"
+                  type="number"
+                  value={formData.rewards.statPoints}
+                  onChange={handleChange}
+                  InputProps={{ inputProps: { min: 0 } }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Time Limit (hours)"
+                  name="timeLimit"
+                  type="number"
+                  value={formData.timeLimit}
+                  onChange={handleChange}
+                  InputProps={{ inputProps: { min: 1, max: 168 } }}
+                  helperText="Time to complete the quest (1-168 hours)"
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Requires Proof</InputLabel>
+                  <Select
+                    name="requiresProof"
+                    value={formData.requiresProof}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      requiresProof: e.target.value === 'true'
+                    }))}
+                    label="Requires Proof"
+                  >
+                    <MenuItem value="false">No</MenuItem>
+                    <MenuItem value="true">Yes</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              {formData.requiresProof && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Proof Type</InputLabel>
+                      <Select
+                        name="proofType"
+                        value={formData.proofType}
+                        onChange={handleChange}
+                        label="Proof Type"
+                      >
+                        <MenuItem value="none">None</MenuItem>
+                        <MenuItem value="video">Video</MenuItem>
+                        <MenuItem value="image">Image</MenuItem>
+                        <MenuItem value="gps">GPS</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Verification Method</InputLabel>
+                      <Select
+                        name="verificationMethod"
+                        value={formData.verificationMethod}
+                        onChange={handleChange}
+                        label="Verification Method"
+                      >
+                        <MenuItem value="none">None</MenuItem>
+                        <MenuItem value="manual">Manual</MenuItem>
+                        <MenuItem value="ai">AI</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ borderTop: '1px solid rgba(66, 135, 245, 0.3)', px: 3, py: 2 }}>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button 
+            onClick={handleSubmit}
+            variant="contained" 
+            color="primary"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : (editingQuest ? 'Update' : 'Create')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
 

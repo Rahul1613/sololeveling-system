@@ -7,8 +7,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #0c1e2f 0%, #1a3a5f 100%) fixed;
-  color: #eaf6ff;
+  background: #000000;
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
 code {
@@ -22,16 +23,17 @@ html, body, #root {
   min-height: 100vh;
   max-width: 100vw;
   overflow-x: hidden;
-  background: linear-gradient(135deg, #0c1e2f 0%, #1a3a5f 100%) fixed;
+  background: #000000;
 }
 
 ::-webkit-scrollbar {
   width: 7px;
-  background: #1a3a5f;
+  background: #1a1a1a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4eafe9;
+  background: #4287f5;
   border-radius: 6px;
+  box-shadow: 0 0 6px #4287f5;
 }
 
 @media (max-width: 600px) {
@@ -41,7 +43,7 @@ html, body, #root {
     padding: 0;
     margin: 0;
     font-size: 16px;
-    background: linear-gradient(135deg, #0c1e2f 0%, #1a3a5f 100%) fixed;
+    background: #000000;
   }
   .App-header {
     min-height: 100vh;

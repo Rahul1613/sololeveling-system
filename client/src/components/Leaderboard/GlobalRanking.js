@@ -20,9 +20,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { 
-  Refresh as RefreshIcon,
-  Search as SearchIcon,
-  FilterList as FilterIcon
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import userService from '../../api/userService';
 import { useSelector } from 'react-redux';

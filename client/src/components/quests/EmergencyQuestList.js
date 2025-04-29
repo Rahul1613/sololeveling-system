@@ -35,30 +35,47 @@ const EmergencyQuestCard = styled(Card)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  backgroundColor: 'rgba(30, 30, 30, 0.9)',
+  backgroundColor: 'rgba(10, 10, 15, 0.8)',
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(244, 67, 54, 0.3)',
-  boxShadow: '0 4px 20px rgba(244, 67, 54, 0.2)',
+  border: '1px solid rgba(244, 67, 54, 0.5)',
+  boxShadow: '0 4px 20px rgba(244, 67, 54, 0.3)',
   '&:hover': {
     transform: 'translateY(-5px)',
-    boxShadow: '0 12px 28px rgba(244, 67, 54, 0.3)'
+    boxShadow: '0 12px 28px rgba(244, 67, 54, 0.5)'
   }
 }));
 
 const QuestTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 'bold',
   marginBottom: theme.spacing(1),
-  color: '#f44336'
+  color: '#f44336',
+  textShadow: '0 0 8px rgba(244, 67, 54, 0.6)'
 }));
 
 const QuestDescription = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(2),
-  color: theme.palette.text.secondary
+  color: '#e0e0e0'
 }));
 
 const RewardChip = styled(Chip)(({ theme }) => ({
   margin: theme.spacing(0.5),
-  fontWeight: 'bold'
+  fontWeight: 'bold',
+  backgroundColor: 'rgba(20, 20, 20, 0.8)',
+  border: '1px solid rgba(244, 67, 54, 0.5)',
+  '& .MuiChip-icon': {
+    color: '#f44336'
+  }
+}));
+
+const QuestInfoBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  marginBottom: theme.spacing(1),
+  '& .MuiSvgIcon-root': {
+    marginRight: theme.spacing(1),
+    fontSize: '1rem',
+    color: '#f44336'
+  }
 }));
 
 const ExpandMore = styled((props) => {
@@ -160,101 +177,112 @@ const EmergencyQuestList = ({ quests = [] }) => {
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <WarningIcon sx={{ color: '#f44336', mr: 1 }} />
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', color: '#f44336' }}>
+    <Box className="container-section">
+      <Box className="flex-between" sx={{ mb: 3 }}>
+        <Typography variant="h5" className="section-title" sx={{ mb: 0, color: '#f44336', textShadow: '0 0 10px rgba(244, 67, 54, 0.7)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <WarningIcon sx={{ mr: 1 }} />
             Emergency Quests
-          </Typography>
-        </Box>
-        <Chip
-          icon={<AlarmIcon />}
-          label="Time-sensitive"
-          color="error"
-          variant="outlined"
-        />
+          </Box>
+        </Typography>
       </Box>
-
+      
+      <Divider sx={{ mb: 3, backgroundColor: 'rgba(244, 67, 54, 0.3)', boxShadow: '0 0 5px rgba(244, 67, 54, 0.2)' }} />
+      
       {quests && quests.length > 0 ? (
-        <Grid container spacing={3}>
-          {quests.map((quest) => (
+        <Grid container spacing={3} className="grid-container">
+          {quests.map(quest => (
             <Grid item xs={12} sm={6} md={4} key={quest._id}>
-              <EmergencyQuestCard>
-                <CardContent sx={{ flexGrow: 1 }}>
+              <EmergencyQuestCard className="quest-card">
+                <CardContent className="card-content">
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <QuestTitle variant="h6">
+                    <QuestTitle variant="h6" className="quest-title">
                       {quest.title}
                     </QuestTitle>
                     {formatDifficulty(quest.difficulty)}
                   </Box>
                   
-                  <QuestDescription variant="body2">
+                  <QuestDescription variant="body2" className="quest-description">
                     {quest.description}
                   </QuestDescription>
                   
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                      <Typography variant="body2" color="error">
-                        Time Remaining: {calculateTimeRemaining(quest.deadline)}
+                  {/* Urgency Bar */}
+                  <Box mb={2}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                        <AlarmIcon sx={{ mr: 0.5, fontSize: '1rem' }} />
+                        Urgency
                       </Typography>
-                      <AlarmIcon fontSize="small" sx={{ color: 'error.main' }} />
+                      <Typography variant="body2">
+                        {calculateTimeRemaining(quest.deadline)}
+                      </Typography>
                     </Box>
                     <LinearProgress 
                       variant="determinate" 
                       value={calculateUrgency(quest.deadline)} 
-                      color="error"
-                      sx={{ height: 8, borderRadius: 4 }}
+                      sx={{ 
+                        height: 8, 
+                        borderRadius: 4,
+                        backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: '#f44336',
+                          boxShadow: '0 0 10px rgba(244, 67, 54, 0.8)'
+                        }
+                      }}
                     />
                   </Box>
                   
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <AccessTimeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {quest.timeEstimate}
+                  <QuestInfoBox className="quest-info">
+                    <AccessTimeIcon className="quest-info-icon" />
+                    <Typography variant="body2">
+                      Time Limit: {quest.timeLimit} hours
                     </Typography>
-                  </Box>
+                  </QuestInfoBox>
                   
-                  <Divider sx={{ my: 2 }} />
-                  
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                    Rewards:
-                  </Typography>
-                  
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                    <RewardChip
-                      size="small"
-                      icon={<StarIcon />}
-                      label={`${quest.rewards.experience} XP`}
-                      color="primary"
-                      variant="outlined"
-                    />
-                    <RewardChip
-                      size="small"
-                      icon={<MonetizationOnIcon />}
-                      label={`${quest.rewards.currency} Gold`}
-                      color="secondary"
-                      variant="outlined"
-                    />
-                    {quest.rewards.statPoints > 0 && (
+                  <Box className="quest-rewards">
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#f44336' }}>
+                      Rewards:
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                       <RewardChip
                         size="small"
-                        icon={<FitnessCenterIcon />}
-                        label={`${quest.rewards.statPoints} Stat Points`}
-                        color="success"
+                        icon={<StarIcon />}
+                        label={`${quest.rewards.experience} XP`}
+                        color="error"
                         variant="outlined"
+                        className="reward-chip"
                       />
-                    )}
+                      <RewardChip
+                        size="small"
+                        icon={<MonetizationOnIcon />}
+                        label={`${quest.rewards.currency} Gold`}
+                        color="error"
+                        variant="outlined"
+                        className="reward-chip"
+                      />
+                      {quest.rewards.statPoints > 0 && (
+                        <RewardChip
+                          size="small"
+                          icon={<FitnessCenterIcon />}
+                          label={`${quest.rewards.statPoints} Stat Points`}
+                          color="error"
+                          variant="outlined"
+                          className="reward-chip"
+                        />
+                      )}
+                    </Box>
                   </Box>
                 </CardContent>
                 
-                <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
+                <CardActions className="card-actions">
                   <Button 
                     variant="contained" 
                     color="error" 
                     size="small"
                     onClick={() => handleOpenConfirmDialog(quest._id)}
                     disabled={quest.status !== 'available'}
+                    sx={{ boxShadow: '0 0 15px rgba(244, 67, 54, 0.5)' }}
                   >
                     Accept Emergency
                   </Button>
@@ -264,14 +292,15 @@ const EmergencyQuestList = ({ quests = [] }) => {
                     onClick={() => handleExpandClick(quest._id)}
                     aria-expanded={expanded[quest._id] || false}
                     aria-label="show more"
+                    sx={{ color: '#f44336' }}
                   >
                     <ExpandMoreIcon />
                   </ExpandMore>
                 </CardActions>
                 
                 <Collapse in={expanded[quest._id] || false} timeout="auto" unmountOnExit>
-                  <CardContent>
-                    <Typography paragraph variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                  <CardContent sx={{ pt: 0 }}>
+                    <Typography paragraph variant="subtitle2" sx={{ fontWeight: 'bold', color: '#f44336' }}>
                       Requirements:
                     </Typography>
                     <Typography paragraph variant="body2">
@@ -281,10 +310,10 @@ const EmergencyQuestList = ({ quests = [] }) => {
                       Rank: {quest.requirements.rank}+
                     </Typography>
                     
-                    <Typography paragraph variant="subtitle2" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                    <Typography paragraph variant="subtitle2" sx={{ fontWeight: 'bold', color: '#f44336' }}>
                       Warning:
                     </Typography>
-                    <Typography paragraph variant="body2" color="error.main">
+                    <Typography paragraph variant="body2" sx={{ color: '#f44336' }}>
                       Failure to complete this emergency quest before the deadline may result in penalties.
                     </Typography>
                   </CardContent>
@@ -294,7 +323,7 @@ const EmergencyQuestList = ({ quests = [] }) => {
           ))}
         </Grid>
       ) : (
-        <Box sx={{ textAlign: 'center', py: 5 }}>
+        <Box sx={{ textAlign: 'center', py: 5, backgroundColor: 'rgba(10, 10, 15, 0.5)', borderRadius: 2 }}>
           <Typography variant="h6" color="text.secondary">
             No emergency quests available at the moment.
           </Typography>
@@ -312,22 +341,26 @@ const EmergencyQuestList = ({ quests = [] }) => {
         aria-describedby="alert-dialog-description"
         PaperProps={{
           sx: {
+            backgroundColor: 'rgba(10, 10, 15, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(244, 67, 54, 0.8)',
+            boxShadow: '0 0 20px rgba(244, 67, 54, 0.5)',
             borderLeft: '4px solid #f44336'
           }
         }}
       >
-        <DialogTitle id="alert-dialog-title" sx={{ color: '#f44336' }}>
+        <DialogTitle id="alert-dialog-title" sx={{ color: '#f44336', borderBottom: '1px solid rgba(244, 67, 54, 0.3)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <WarningIcon sx={{ mr: 1 }} />
             Accept Emergency Quest
           </Box>
         </DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
+          <DialogContentText id="alert-dialog-description" sx={{ color: '#e0e0e0', my: 2 }}>
             This is an emergency quest with a strict deadline. Failure to complete it in time may result in penalties. Are you sure you want to accept this challenge?
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ borderTop: '1px solid rgba(244, 67, 54, 0.3)', px: 3, py: 2 }}>
           <Button onClick={handleCloseConfirmDialog} color="primary">
             Cancel
           </Button>
@@ -336,6 +369,7 @@ const EmergencyQuestList = ({ quests = [] }) => {
             color="error" 
             variant="contained" 
             autoFocus
+            sx={{ boxShadow: '0 0 15px rgba(244, 67, 54, 0.5)' }}
           >
             Accept Emergency
           </Button>

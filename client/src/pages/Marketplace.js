@@ -1,719 +1,1874 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import ItemImage from '../components/marketplace/ItemImage';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   Box, 
   Typography, 
   Grid, 
   Container, 
-  Tabs, 
-  Tab, 
-  TextField, 
-  MenuItem, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  Slider, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions,
   CircularProgress,
   Alert,
-  Divider,
   Paper,
+  Button,
+  useMediaQuery,
+  Tabs,
+  Tab,
+  Divider,
+  IconButton,
+  TextField,
+  InputAdornment,
   Chip,
-  Avatar,
-  useMediaQuery
+  Badge,
+  Tooltip,
+  Menu,
+  MenuItem,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  Card,
+  CardContent,
+  CardMedia,
+  CardActions,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Slider,
+  useTheme
 } from '@mui/material';
-import SystemPanel from '../components/common/SystemPanel';
-import SystemButton from '../components/common/SystemButton';
-import { HolographicCard } from '../components/HolographicUI';
-import FeaturedCarousel from '../components/marketplace/FeaturedCarousel';
-import RecommendedItems from '../components/marketplace/RecommendedItems';
-import MarketplaceItemCard from '../components/marketplace/MarketplaceItemCard';
+import { styled, alpha } from '@mui/material/styles';
 import { 
   getMarketplaceItems, 
   getFeaturedItems, 
   getRecommendedItems, 
-  buyItem, 
-  sellItem, 
   reset 
 } from '../redux/slices/marketplaceSlice';
+import { getCurrentUser } from '../redux/slices/authSlice';
+import { addNotification } from '../redux/slices/notificationSlice';
+import databaseService from '../api/databaseService';
+import SearchIcon from '@mui/icons-material/Search';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import SortIcon from '@mui/icons-material/Sort';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import SyncIcon from '@mui/icons-material/Sync';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
+// Styled components
+const MarketplaceContainer = styled(Container)(({ theme }) => ({
+  paddingTop: theme.spacing(4),
+  paddingBottom: theme.spacing(8),
+  maxWidth: '100%',
+}));
+
+const MarketplaceHeader = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  textAlign: 'center',
+  position: 'relative',
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '-10px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '100px',
+    height: '3px',
+    background: 'linear-gradient(90deg, rgba(95, 209, 249, 0.1), rgba(95, 209, 249, 0.8), rgba(95, 209, 249, 0.1))',
+    borderRadius: '3px',
+  }
+}));
+
+const MarketplaceTitle = styled(Typography)(({ theme }) => ({
+  color: '#5FD1F9',
+  fontWeight: 'bold',
+  textTransform: 'uppercase',
+  letterSpacing: '3px',
+  marginBottom: theme.spacing(1),
+  textShadow: '0 0 10px rgba(95, 209, 249, 0.5)',
+  fontFamily: '"Rajdhani", sans-serif',
+  position: 'relative',
+  display: 'inline-block',
+  '&::before, &::after': {
+    content: '""',
+    position: 'absolute',
+    top: '50%',
+    width: '30px',
+    height: '2px',
+    background: 'rgba(95, 209, 249, 0.5)',
+  },
+  '&::before': {
+    left: '-40px',
+  },
+  '&::after': {
+    right: '-40px',
+  }
+}));
+
+const MarketplaceSubtitle = styled(Typography)(({ theme }) => ({
+  color: '#eaf6ff',
+  marginBottom: theme.spacing(2),
+  opacity: 0.8,
+  fontFamily: '"Rajdhani", sans-serif',
+}));
+
+const ItemsContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: theme.spacing(1),
+  background: 'rgba(10, 25, 41, 0.7)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(95, 209, 249, 0.3)',
+  boxShadow: '0 0 15px rgba(95, 209, 249, 0.2)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'radial-gradient(circle at top right, rgba(95, 209, 249, 0.1), transparent 70%)',
+    pointerEvents: 'none',
+  }
+}));
+
+const NoItemsMessage = styled(Typography)(({ theme }) => ({
+  textAlign: 'center',
+  color: '#eaf6ff',
+  padding: theme.spacing(4),
+  opacity: 0.7,
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  background: 'rgba(0, 0, 0, 0.8)',
+  border: '1px solid rgba(66, 135, 245, 0.5)',
+  boxShadow: '0 0 10px rgba(66, 135, 245, 0.5)',
+  color: '#ffffff',
+  fontFamily: '"Rajdhani", sans-serif',
+  fontWeight: 'bold',
+  letterSpacing: '1px',
+  padding: '8px 16px',
+  '&:hover': {
+    background: 'rgba(20, 20, 20, 0.9)',
+    boxShadow: '0 0 15px rgba(66, 135, 245, 0.8)',
+    transform: 'translateY(-2px)',
+  },
+  transition: 'all 0.3s ease',
+  margin: theme.spacing(1),
+}));
+
+const SearchBar = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.05),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.1),
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    width: 'auto',
+  },
+  border: '1px solid rgba(95, 209, 249, 0.3)',
+  transition: 'all 0.3s ease',
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#5FD1F9',
+}));
+
+const StyledInputBase = styled(TextField)(({ theme }) => ({
+  color: 'inherit',
+  width: '100%',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    color: '#eaf6ff',
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    border: 'none',
+  },
+  '& .MuiOutlinedInput-root': {
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      border: 'none',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      border: 'none',
+    },
+  },
+}));
+
+const CategoryTabs = styled(Tabs)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+  '& .MuiTabs-indicator': {
+    backgroundColor: '#5FD1F9',
+    height: '3px',
+    borderRadius: '3px',
+  },
+  '& .MuiTab-root': {
+    color: '#eaf6ff',
+    opacity: 0.7,
+    fontFamily: '"Rajdhani", sans-serif',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    '&.Mui-selected': {
+      color: '#5FD1F9',
+      opacity: 1,
+    },
+  },
+}));
+
+const ItemCard = styled(Card)(({ theme }) => ({
+  background: 'rgba(0, 0, 0, 0.5)',
+  border: '1px solid rgba(95, 209, 249, 0.3)',
+  boxShadow: '0 0 10px rgba(95, 209, 249, 0.1)',
+  transition: 'all 0.3s ease',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 0 20px rgba(95, 209, 249, 0.3)',
+    '& .item-overlay': {
+      opacity: 1,
+    },
+  },
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '5px',
+    background: 'linear-gradient(90deg, transparent, rgba(95, 209, 249, 0.5), transparent)',
+    opacity: 0,
+    transition: 'opacity 0.3s ease',
+  },
+  '&:hover::before': {
+    opacity: 1,
+  },
+}));
+
+const ItemOverlay = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  background: 'rgba(0, 0, 0, 0.7)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  opacity: 0,
+  transition: 'opacity 0.3s ease',
+  zIndex: 2,
+}));
+
+const RarityChip = styled(Chip)(({ rarity, theme }) => ({
+  backgroundColor: 
+    rarity === 'legendary' ? 'rgba(255, 215, 0, 0.2)' : 
+    rarity === 'epic' ? 'rgba(163, 53, 238, 0.2)' : 
+    rarity === 'rare' ? 'rgba(0, 112, 221, 0.2)' : 
+    rarity === 'uncommon' ? 'rgba(30, 255, 0, 0.2)' : 
+    'rgba(190, 190, 190, 0.2)',
+  color: 
+    rarity === 'legendary' ? '#FFD700' : 
+    rarity === 'epic' ? '#A335EE' : 
+    rarity === 'rare' ? '#0070DD' : 
+    rarity === 'uncommon' ? '#1EFF00' : 
+    '#BEBEBE',
+  border: 
+    rarity === 'legendary' ? '1px solid rgba(255, 215, 0, 0.5)' : 
+    rarity === 'epic' ? '1px solid rgba(163, 53, 238, 0.5)' : 
+    rarity === 'rare' ? '1px solid rgba(0, 112, 221, 0.5)' : 
+    rarity === 'uncommon' ? '1px solid rgba(30, 255, 0, 0.5)' : 
+    '1px solid rgba(190, 190, 190, 0.5)',
+  fontWeight: 'bold',
+  fontSize: '0.7rem',
+  height: '24px',
+}));
+
+const CartBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    backgroundColor: '#5FD1F9',
+    color: '#000',
+    fontWeight: 'bold',
+    boxShadow: '0 0 5px rgba(95, 209, 249, 0.5)',
+  },
+}));
+
+/**
+ * Enhanced Marketplace component with improved UI and features
+ */
 const Marketplace = () => {
   const dispatch = useDispatch();
+  const theme = useTheme();
   const { user } = useSelector((state) => state.auth);
   const { 
     items, 
     featuredItems, 
     recommendedItems, 
     isLoading, 
-    isSuccess, 
     isError, 
     message 
   } = useSelector((state) => state.marketplace);
-  const { items: inventoryItems } = useSelector((state) => state.inventory);
 
   const isDesktop = useMediaQuery('(min-width:900px)');
-  const isMobile = useMediaQuery('(max-width:600px)');
-
-  // State for tabs and filters
-  const [tabValue, setTabValue] = useState(0);
-  const [filters, setFilters] = useState({
-    type: '',
-    rarity: '',
-    minLevel: 1,
-    maxLevel: 100,
-    minPrice: 0,
-    maxPrice: 10000
-  });
-
-  // State for cart and item details
+  
+  // Component state
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryTab, setCategoryTab] = useState(0);
   const [cart, setCart] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [sortOption, setSortOption] = useState('default');
+  const [sortMenuAnchor, setSortMenuAnchor] = useState(null);
+  const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [selectedRarities, setSelectedRarities] = useState([]);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [itemDetailsOpen, setItemDetailsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [purchaseQuantity, setPurchaseQuantity] = useState(1);
+  const [sellDialogOpen, setSellDialogOpen] = useState(false);
+  const [sellItemName, setSellItemName] = useState('');
+  const [sellItemDescription, setSellItemDescription] = useState('');
+  const [sellItemPrice, setSellItemPrice] = useState(100);
+  const [sellItemCategory, setSellItemCategory] = useState('weapons');
+  const [sellItemRarity, setSellItemRarity] = useState('common');
   const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
-  const [purchaseType, setPurchaseType] = useState('buy'); // 'buy' or 'sell'
-  const [notification, setNotification] = useState({ show: false, message: '', type: 'info' });
-
-  // Handle tab change
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-    
-    // Update type filter based on tab
-    const types = ['weapon', 'armor', 'potion', 'consumable', 'material', 'key'];
-    if (newValue > 0 && newValue <= types.length) {
-      setFilters({...filters, type: types[newValue - 1]});
-    } else {
-      setFilters({...filters, type: ''});
-    }
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  
+  // Category options
+  const categories = ['All Items', 'Weapons', 'Armor', 'Potions', 'Accessories', 'Special'];
+  
+  // Rarity options
+  const rarityOptions = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+  
+  // Sort options
+  const sortOptions = [
+    { value: 'default', label: 'Default' },
+    { value: 'price-asc', label: 'Price: Low to High' },
+    { value: 'price-desc', label: 'Price: High to Low' },
+    { value: 'name-asc', label: 'Name: A to Z' },
+    { value: 'name-desc', label: 'Name: Z to A' },
+    { value: 'rarity', label: 'Rarity' },
+  ];
+  
+  // Handle category tab change
+  const handleCategoryChange = (event, newValue) => {
+    setCategoryTab(newValue);
   };
-
-  // Handle filter changes
-  const handleFilterChange = (event) => {
-    const { name, value } = event.target;
-    setFilters({...filters, [name]: value});
+  
+  // Handle search input change
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
   };
-
-  // Handle price range change
-  const handlePriceRangeChange = (event, newValue) => {
-    setFilters({
-      ...filters,
-      minPrice: newValue[0],
-      maxPrice: newValue[1]
+  
+  // Handle sort menu
+  const handleSortMenuOpen = (event) => {
+    setSortMenuAnchor(event.currentTarget);
+  };
+  
+  const handleSortMenuClose = () => {
+    setSortMenuAnchor(null);
+  };
+  
+  const handleSortChange = (option) => {
+    setSortOption(option);
+    handleSortMenuClose();
+  };
+  
+  // Handle filter menu
+  const handleFilterMenuOpen = (event) => {
+    setFilterMenuAnchor(event.currentTarget);
+  };
+  
+  const handleFilterMenuClose = () => {
+    setFilterMenuAnchor(null);
+  };
+  
+  // Handle rarity filter change
+  const handleRarityToggle = (rarity) => {
+    setSelectedRarities(prev => {
+      if (prev.includes(rarity)) {
+        return prev.filter(r => r !== rarity);
+      } else {
+        return [...prev, rarity];
+      }
     });
   };
-
-  // Handle level range change
-  const handleLevelRangeChange = (event, newValue) => {
-    setFilters({
-      ...filters,
-      minLevel: newValue[0],
-      maxLevel: newValue[1]
-    });
+  
+  // Handle cart drawer
+  const handleCartOpen = () => {
+    setCartDrawerOpen(true);
   };
-
-  // Apply filters
-  const applyFilters = () => {
-    dispatch(getMarketplaceItems(filters));
+  
+  const handleCartClose = () => {
+    setCartDrawerOpen(false);
   };
-
-  // Reset filters
-  const resetFilters = () => {
-    setFilters({
-      type: tabValue > 0 ? filters.type : '',
-      rarity: '',
-      minLevel: 1,
-      maxLevel: 100,
-      minPrice: 0,
-      maxPrice: 10000
-    });
-    dispatch(getMarketplaceItems({ type: tabValue > 0 ? filters.type : '' }));
-  };
-
-  // Add item to cart
+  
+  // Handle adding item to cart
   const handleAddToCart = (item) => {
-    const existingItem = cart.find(i => i._id === item._id);
+    const existingItem = cart.find(cartItem => cartItem._id === item._id);
+    
     if (existingItem) {
-      setCart(cart.map(i => i._id === item._id ? {...i, quantity: i.quantity + 1} : i));
+      // Update quantity if item already in cart
+      const updatedCart = cart.map(cartItem => 
+        cartItem._id === item._id 
+          ? { ...cartItem, quantity: cartItem.quantity + 1 } 
+          : cartItem
+      );
+      setCart(updatedCart);
+      databaseService.saveToStorage('cart', updatedCart);
     } else {
-      setCart([...cart, {...item, quantity: 1}]);
+      // Add new item to cart
+      const updatedCart = [...cart, { ...item, quantity: 1 }];
+      setCart(updatedCart);
+      databaseService.saveToStorage('cart', updatedCart);
     }
     
-    setNotification({
-      show: true,
+    dispatch(addNotification({
       message: `${item.name} added to cart`,
       type: 'success'
+    }));
+  };
+  
+  // Handle removing item from cart
+  const handleRemoveFromCart = (itemId) => {
+    const updatedCart = cart.filter(item => item._id !== itemId);
+    setCart(updatedCart);
+    databaseService.saveToStorage('cart', updatedCart);
+  };
+  
+  // Handle item details
+  const handleItemDetails = (item) => {
+    setSelectedItem(item);
+    setItemDetailsOpen(true);
+  };
+  
+  const handleCloseItemDetails = () => {
+    setItemDetailsOpen(false);
+  };
+  
+  // Handle sell item dialog
+  const handleOpenSellDialog = () => {
+    setSellDialogOpen(true);
+  };
+  
+  const handleCloseSellDialog = () => {
+    setSellDialogOpen(false);
+    // Reset form fields
+    setSellItemName('');
+    setSellItemDescription('');
+    setSellItemPrice(100);
+    setSellItemCategory('weapons');
+    setSellItemRarity('common');
+  };
+  
+  // Handle sell item submission
+  const handleSellItem = () => {
+    // Create a new item object
+    const newItem = {
+      _id: `user-item-${Date.now()}`,
+      name: sellItemName,
+      description: sellItemDescription,
+      price: sellItemPrice,
+      category: sellItemCategory,
+      rarity: sellItemRarity,
+      seller: user?.username || 'Anonymous',
+      sellerId: user?._id || 'unknown',
+      listed: new Date().toISOString(),
+      // Use a default image path that matches the item name
+      image: `/images/items/${sellItemCategory === 'weapons' ? 'Steel Sword' : 
+              sellItemCategory === 'armor' ? 'Leather Armor' : 
+              sellItemCategory === 'potions' ? 'Health Potion' : 
+              sellItemCategory === 'accessories' ? 'Shadow Essence' : 'default'}.jpg`
+    };
+    
+    // In a real app, this would be an API call to add the item to the marketplace
+    // For now, we'll just add it to the local items array
+    const updatedItems = [newItem, ...items];
+    
+    // Update the Redux store (this is a mock implementation)
+    // In a real app, you would dispatch an action to add the item to the marketplace
+    dispatch({
+      type: 'marketplace/addItem',
+      payload: newItem
     });
     
-    setTimeout(() => {
-      setNotification({ show: false, message: '', type: 'info' });
-    }, 3000);
+    // Show success notification
+    dispatch(addNotification({
+      message: `${sellItemName} has been listed for sale`,
+      type: 'success'
+    }));
+    
+    // Close the dialog
+    handleCloseSellDialog();
   };
-
-  // Remove item from cart
-  const handleRemoveFromCart = (itemId) => {
-    setCart(cart.filter(item => item._id !== itemId));
-  };
-
-  // View item details
-  const handleViewDetails = (item) => {
+  
+  // Handle purchase dialog
+  const handleOpenPurchaseDialog = (item) => {
     setSelectedItem(item);
-    setDetailsOpen(true);
-  };
-
-  // Close item details
-  const handleCloseDetails = () => {
-    setDetailsOpen(false);
-  };
-
-  // Buy item now
-  const handleBuyNow = (item) => {
-    setSelectedItem(item);
-    setPurchaseQuantity(1);
-    setPurchaseType('buy');
     setPurchaseDialogOpen(true);
   };
-
-  // Sell item
-  const handleSellItem = (item) => {
-    setSelectedItem(item);
-    setPurchaseQuantity(1);
-    setPurchaseType('sell');
-    setPurchaseDialogOpen(true);
-  };
-
-  // Confirm purchase
-  const handleConfirmPurchase = () => {
-    if (purchaseType === 'buy') {
-      dispatch(buyItem({ itemId: selectedItem._id, quantity: purchaseQuantity }));
-    } else {
-      dispatch(sellItem({ itemId: selectedItem._id, quantity: purchaseQuantity }));
-    }
+  
+  const handleClosePurchaseDialog = () => {
     setPurchaseDialogOpen(false);
+    setPurchaseSuccess(false);
   };
-
-  // Check if user owns an item
-  const isItemOwned = (itemId) => {
-    return inventoryItems.some(item => item.item._id === itemId);
-  };
-
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US').format(amount);
-  };
-
-  // Get rarity color
-  const getRarityColor = (rarity) => {
-    const colors = {
-      common: '#9e9e9e',
-      uncommon: '#4caf50',
-      rare: '#2196f3',
-      epic: '#9c27b0',
-      legendary: '#ff9800',
-      mythic: '#f44336'
-    };
-    return colors[rarity] || '#9e9e9e';
-  };
-
-  // Load marketplace data when component mounts
-  useEffect(() => {
-    dispatch(getMarketplaceItems({}));
-    dispatch(getFeaturedItems());
-    dispatch(getRecommendedItems());
+  
+  // Handle purchase confirmation
+  const handlePurchaseConfirm = () => {
+    // In a real app, this would be an API call to purchase the item
+    // For now, we'll just simulate a successful purchase
     
-    return () => {
-      dispatch(reset());
-    };
-  }, [dispatch]);
+    // Show success notification
+    dispatch(addNotification({
+      message: `You have successfully purchased ${selectedItem.name}`,
+      type: 'success'
+    }));
+    
+    // Set purchase success
+    setPurchaseSuccess(true);
+    
+    // Remove item from cart if it's there
+    const updatedCart = cart.filter(item => item._id !== selectedItem._id);
+    setCart(updatedCart);
+    databaseService.saveToStorage('cart', updatedCart);
+  };
 
-  // Reset notification when success/error state changes
-  useEffect(() => {
-    if (isSuccess) {
-      setNotification({
-        show: true,
-        message: 'Transaction completed successfully!',
-        type: 'success'
+  // Filter and sort items based on user selections
+  const filterAndSortItems = useCallback(() => {
+    if (!items || items.length === 0) return [];
+    
+    // Start with all items or category-filtered items
+    let result = [...items];
+    
+    // Apply category filter
+    if (categoryTab > 0 && categories[categoryTab]) {
+      const category = categories[categoryTab].toLowerCase();
+      // Add default categories to items that don't have one
+      result = result.filter(item => {
+        const itemCategory = (item.category || 'miscellaneous').toLowerCase();
+        return itemCategory === category;
       });
-      
-      // Reset cart if purchase was successful
-      if (purchaseType === 'buy') {
-        setCart([]);
+    }
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(item => 
+        (item.name && item.name.toLowerCase().includes(query)) ||
+        (item.description && item.description.toLowerCase().includes(query))
+      );
+    }
+    
+    // Apply rarity filter
+    if (selectedRarities.length > 0) {
+      result = result.filter(item => 
+        item.rarity && selectedRarities.includes(item.rarity.toLowerCase())
+      );
+    }
+    
+    // Apply price range filter
+    result = result.filter(item => 
+      item.price >= priceRange[0] && item.price <= priceRange[1]
+    );
+    
+    // Apply sorting
+    switch (sortOption) {
+      case 'price-asc':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        result.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-asc':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name-desc':
+        result.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'rarity':
+        const rarityOrder = {
+          'common': 1,
+          'uncommon': 2,
+          'rare': 3,
+          'epic': 4,
+          'legendary': 5
+        };
+        result.sort((a, b) => {
+          return (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0);
+        });
+        break;
+      default:
+        // Default sorting (by id or as they come from API)
+        break;
+    }
+    
+    return result;
+  }, [items, categoryTab, categories, searchQuery, selectedRarities, priceRange, sortOption]);
+  
+  // Update filtered items when filters or items change
+  useEffect(() => {
+    if (items && items.length > 0) {
+      const filtered = filterAndSortItems();
+      setFilteredItems(filtered);
+    }
+  }, [items, filterAndSortItems]);
+
+  // Load data in a controlled, sequential manner
+  useEffect(() => {
+    // Add a flag to prevent duplicate loading
+    if (isDataLoaded) return;
+    
+    let isMounted = true;
+    let timeoutIds = [];
+
+    const loadData = async () => {
+      try {
+        // Load marketplace items
+        const id1 = setTimeout(async () => {
+          if (isMounted) {
+            try {
+              await dispatch(getMarketplaceItems()).unwrap();
+              console.log("Marketplace items loaded");
+            } catch (err) {
+              console.error("Error loading marketplace items:", err);
+              if (isMounted) setError("Failed to load marketplace items");
+            }
+          }
+        }, 100);
+        timeoutIds.push(id1);
+
+        // Load featured items after a delay
+        const id2 = setTimeout(async () => {
+          if (isMounted) {
+            try {
+              await dispatch(getFeaturedItems()).unwrap();
+              console.log("Featured items loaded");
+            } catch (err) {
+              console.error("Error loading featured items:", err);
+            }
+          }
+        }, 1000);
+        timeoutIds.push(id2);
+
+        // Load recommended items after another delay
+        const id3 = setTimeout(async () => {
+          if (isMounted) {
+            try {
+              await dispatch(getRecommendedItems()).unwrap();
+              console.log("Recommended items loaded");
+            } catch (err) {
+              console.error("Error loading recommended items:", err);
+            }
+          }
+        }, 2000);
+        timeoutIds.push(id3);
+
+        // Load user data and cart after another delay
+        const id4 = setTimeout(async () => {
+          if (isMounted) {
+            try {
+              await dispatch(getCurrentUser()).unwrap();
+              console.log("User data loaded");
+              
+              // Load cart from storage
+              const savedCart = databaseService.loadFromStorage('cart', []);
+              if (savedCart && savedCart.length > 0) {
+                setCart(savedCart);
+              }
+              
+              setIsDataLoaded(true);
+            } catch (err) {
+              console.error("Error loading user data:", err);
+            }
+          }
+        }, 3000);
+        timeoutIds.push(id4);
+      } catch (error) {
+        console.error("Error in loadData:", error);
+        if (isMounted) setError("Failed to load marketplace data");
       }
-      
-      dispatch(reset());
-    }
-    
-    if (isError) {
-      setNotification({
-        show: true,
-        message: message || 'Transaction failed',
-        type: 'error'
-      });
-      dispatch(reset());
-    }
-    
-    if (notification.show) {
-      setTimeout(() => {
-        setNotification({ show: false, message: '', type: 'info' });
-      }, 3000);
-    }
-  }, [isSuccess, isError, message, dispatch, purchaseType]);
+    };
 
-  return (
-    <Container maxWidth="lg" sx={{ mt: isDesktop ? 4 : 2, mb: isDesktop ? 4 : 2 }}>
-      {/* Header */}
-      <SystemPanel sx={{ mb: isDesktop ? 4 : 2, maxWidth: isDesktop ? 700 : '100vw', margin: isDesktop ? '32px auto' : 0 }}>
-        <Typography sx={{ color: '#00eaff', fontFamily: 'Orbitron', fontSize: isDesktop ? 26 : 22, mb: 2, letterSpacing: 2, textShadow: '0 0 6px #00eaffcc' }}>
-          MARKETPLACE
-        </Typography>
-        <Typography variant="h6" sx={{ color: '#FFD700', fontWeight: 600 }}>
-          Your Currency: {formatCurrency(user?.currency || 0)}
-        </Typography>
-      </SystemPanel>
-      
-      {/* Notification */}
-      {notification.show && (
+    loadData();
+
+    // Cleanup function to prevent memory leaks and cancel pending operations
+    return () => {
+      isMounted = false;
+      timeoutIds.forEach(id => clearTimeout(id));
+    };
+  }, [dispatch, isDataLoaded]); // Add isDataLoaded to dependency array
+
+  // Calculate cart total
+  const cartTotal = cart.reduce((total, item) => {
+    return total + (item.price * (item.quantity || 1));
+  }, 0);
+  
+  // Render loading state
+  if (isLoading && !isDataLoaded) {
+    return (
+      <MarketplaceContainer>
+        <MarketplaceHeader>
+          <MarketplaceTitle variant={isDesktop ? "h3" : "h4"}>
+            Marketplace
+          </MarketplaceTitle>
+          <MarketplaceSubtitle variant="subtitle1">
+            Loading marketplace data...
+          </MarketplaceSubtitle>
+        </MarketplaceHeader>
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4, flexDirection: 'column', alignItems: 'center' }}>
+          <CircularProgress size={60} sx={{ color: '#5FD1F9', mb: 2 }} />
+          <Typography variant="body1" sx={{ color: '#eaf6ff', opacity: 0.8, fontStyle: 'italic' }}>
+            Connecting to the System...
+          </Typography>
+        </Box>
+      </MarketplaceContainer>
+    );
+  }
+
+  // Render error state
+  if (isError || error) {
+    return (
+      <MarketplaceContainer>
+        <MarketplaceHeader>
+          <MarketplaceTitle variant={isDesktop ? "h3" : "h4"}>
+            Marketplace
+          </MarketplaceTitle>
+          <MarketplaceSubtitle variant="subtitle1">
+            System Connection Error
+          </MarketplaceSubtitle>
+        </MarketplaceHeader>
         <Alert 
-          severity={notification.type} 
-          sx={{ mb: isDesktop ? 2 : 1, borderRadius: 2, boxShadow: 3 }}
-          onClose={() => setNotification({ show: false, message: '', type: 'info' })}
+          severity="error" 
+          sx={{ 
+            mb: 4, 
+            backgroundColor: 'rgba(211, 47, 47, 0.1)', 
+            color: '#ff5252',
+            border: '1px solid rgba(211, 47, 47, 0.3)',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'radial-gradient(circle at top right, rgba(211, 47, 47, 0.2), transparent 70%)',
+              pointerEvents: 'none',
+            }
+          }}
         >
-          {notification.message}
+          {message || error || "Failed to load marketplace data. Please check your connection to the System."}
         </Alert>
-      )}
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <StyledButton 
+            onClick={() => window.location.reload()}
+            variant="contained"
+            startIcon={<SyncIcon />}
+          >
+            Reconnect to System
+          </StyledButton>
+        </Box>
+      </MarketplaceContainer>
+    );
+  }
+  
+  // Render cart drawer
+  const renderCartDrawer = () => (
+    <Drawer
+      anchor="right"
+      open={cartDrawerOpen}
+      onClose={handleCartClose}
+      PaperProps={{
+        sx: {
+          width: isDesktop ? 400 : '100%',
+          maxWidth: '100%',
+          background: 'rgba(10, 25, 41, 0.9)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(95, 209, 249, 0.3)',
+          boxShadow: '-5px 0 15px rgba(0, 0, 0, 0.5)',
+          p: 2,
+        }
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h5" sx={{ color: '#5FD1F9', fontWeight: 'bold' }}>
+          Your Cart
+        </Typography>
+        <IconButton onClick={handleCartClose} sx={{ color: '#eaf6ff' }}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
       
-      {/* Featured Items */}
-      <SystemPanel sx={{ mb: isDesktop ? 4 : 2, maxWidth: isDesktop ? 700 : '100vw', margin: isDesktop ? '32px auto' : 0 }}>
-        {isLoading && featuredItems.length === 0 ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: isDesktop ? 4 : 2 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <FeaturedCarousel 
-            items={featuredItems} 
-            onAddToCart={handleAddToCart} 
-            onBuyNow={handleBuyNow} 
-            onViewDetails={handleViewDetails}
-            cart={cart}
-            user={{ inventory: inventoryItems }}
-          />
-        )}
-      </SystemPanel>
+      <Divider sx={{ mb: 2, borderColor: 'rgba(95, 209, 249, 0.3)' }} />
       
-      {/* Tabs and Filters */}
-      <SystemPanel sx={{ mb: isDesktop ? 3 : 2, maxWidth: isDesktop ? 700 : '100vw', margin: isDesktop ? '32px auto' : 0 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={handleTabChange} 
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="All Items" />
-          <Tab label="Weapons" />
-          <Tab label="Armor" />
-          <Tab label="Potions" />
-          <Tab label="Consumables" />
-          <Tab label="Materials" />
-          <Tab label="Keys" />
-        </Tabs>
-        <Grid container spacing={isDesktop ? 3 : 2}>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Rarity</InputLabel>
-              <Select
-                name="rarity"
-                value={filters.rarity}
-                label="Rarity"
-                onChange={handleFilterChange}
+      {cart.length === 0 ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
+          <Typography variant="body1" sx={{ color: '#eaf6ff', opacity: 0.7, mb: 2, textAlign: 'center' }}>
+            Your cart is empty
+          </Typography>
+          <StyledButton onClick={handleCartClose}>
+            Continue Shopping
+          </StyledButton>
+        </Box>
+      ) : (
+        <>
+          <List sx={{ mb: 2 }}>
+            {cart.map((item) => (
+              <ListItem 
+                key={item._id} 
+                sx={{ 
+                  mb: 1, 
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  borderRadius: 1,
+                  border: '1px solid rgba(95, 209, 249, 0.2)'
+                }}
+                secondaryAction={
+                  <IconButton 
+                    edge="end" 
+                    onClick={() => handleRemoveFromCart(item._id)}
+                    sx={{ color: '#ff5252' }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                }
               >
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="common">Common</MenuItem>
-                <MenuItem value="uncommon">Uncommon</MenuItem>
-                <MenuItem value="rare">Rare</MenuItem>
-                <MenuItem value="epic">Epic</MenuItem>
-                <MenuItem value="legendary">Legendary</MenuItem>
-                <MenuItem value="mythic">Mythic</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3}>
-            <Typography gutterBottom>Level Range</Typography>
-            <Slider
-              value={[filters.minLevel, filters.maxLevel]}
-              onChange={handleLevelRangeChange}
-              valueLabelDisplay="auto"
-              min={1}
-              max={100}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3}>
-            <Typography gutterBottom>Price Range</Typography>
-            <Slider
-              value={[filters.minPrice, filters.maxPrice]}
-              onChange={handlePriceRangeChange}
-              valueLabelDisplay="auto"
-              min={0}
-              max={10000}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
-            <SystemButton variant="contained" onClick={applyFilters} sx={{ mr: isDesktop ? 1 : 0 }}>
-              Apply
-            </SystemButton>
-            <SystemButton variant="outlined" onClick={resetFilters}>
-              Reset
-            </SystemButton>
-          </Grid>
-        </Grid>
-      </SystemPanel>
-      
-      {/* Recommended Items */}
-      {recommendedItems.length > 0 && (
-        <SystemPanel sx={{ mb: isDesktop ? 4 : 2, maxWidth: isDesktop ? 700 : '100vw', margin: isDesktop ? '32px auto' : 0 }}>
-          <RecommendedItems 
-            items={recommendedItems} 
-            onAddToCart={handleAddToCart} 
-            onBuyNow={handleBuyNow} 
-            onViewDetails={handleViewDetails}
-            cart={cart}
-            user={{ inventory: inventoryItems }}
-          />
-        </SystemPanel>
-      )}
-      
-      {/* Marketplace Items */}
-      <SystemPanel sx={{ mb: isDesktop ? 4 : 2, maxWidth: isDesktop ? 700 : '100vw', margin: isDesktop ? '32px auto' : 0 }}>
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: isDesktop ? 4 : 2 }}>
-            <CircularProgress />
-          </Box>
-        ) : items.length === 0 ? (
-          <Box sx={{ p: isDesktop ? 4 : 2, textAlign: 'center' }}>
-            <Typography variant="body1">
-              No items found matching your filters.
-            </Typography>
-          </Box>
-        ) : (
-          <Grid container spacing={isDesktop ? 3 : 2} sx={{ p: isDesktop ? 2 : 1 }}>
-            {items.map(item => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={item._id}>
-                <MarketplaceItemCard
-                  item={item}
-                  onAddToCart={handleAddToCart}
-                  onBuyNow={handleBuyNow}
-                  onViewDetails={handleViewDetails}
-                  isInCart={cart.some(c => c._id === item._id)}
-                  isOwned={isItemOwned(item._id)}
+                <ListItemText
+                  primary={
+                    <Typography variant="body1" sx={{ color: '#5FD1F9' }}>
+                      {item.name} {item.quantity > 1 && `(${item.quantity})`}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="body2" sx={{ color: '#FFD700' }}>
+                      {item.price} G {item.quantity > 1 && `× ${item.quantity} = ${item.price * item.quantity} G`}
+                    </Typography>
+                  }
                 />
+              </ListItem>
+            ))}
+          </List>
+          
+          <Box sx={{ mt: 'auto' }}>
+            <Divider sx={{ mb: 2, borderColor: 'rgba(95, 209, 249, 0.3)' }} />
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#eaf6ff' }}>
+                Total:
+              </Typography>
+              <Typography variant="h6" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
+                {cartTotal} G
+              </Typography>
+            </Box>
+            
+            <StyledButton 
+              fullWidth 
+              sx={{ 
+                mb: 1,
+                background: 'rgba(95, 209, 249, 0.2)',
+                '&:hover': {
+                  background: 'rgba(95, 209, 249, 0.3)',
+                }
+              }}
+            >
+              Checkout
+            </StyledButton>
+            
+            <StyledButton 
+              fullWidth 
+              onClick={handleCartClose}
+              sx={{ 
+                background: 'rgba(0, 0, 0, 0.5)',
+                '&:hover': {
+                  background: 'rgba(0, 0, 0, 0.7)',
+                }
+              }}
+            >
+              Continue Shopping
+            </StyledButton>
+          </Box>
+        </>
+      )}
+    </Drawer>
+  );
+
+  // Render item details dialog
+  const renderItemDetailsDialog = () => (
+    <Dialog 
+      open={itemDetailsOpen} 
+      onClose={handleCloseItemDetails}
+      PaperProps={{
+        sx: {
+          background: 'rgba(10, 25, 41, 0.9)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(95, 209, 249, 0.3)',
+          boxShadow: '0 0 25px rgba(95, 209, 249, 0.3)',
+          maxWidth: '600px',
+          width: '100%',
+        }
+      }}
+    >
+      {selectedItem && (
+        <>
+          <DialogTitle sx={{ color: '#5FD1F9', borderBottom: '1px solid rgba(95, 209, 249, 0.3)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                {selectedItem.name}
+              </Typography>
+              <IconButton onClick={handleCloseItemDetails} sx={{ color: '#eaf6ff' }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: isDesktop ? 'row' : 'column', gap: 3, mb: 2 }}>
+              <Box sx={{ flex: '0 0 40%', position: 'relative' }}>
+                <CardMedia
+                  component="img"
+                  image={selectedItem.image || `/images/items/${selectedItem.id || 'default'}.png`}
+                  alt={selectedItem.name}
+                  sx={{ 
+                    height: 200, 
+                    objectFit: 'contain',
+                    borderRadius: 1,
+                    border: '1px solid rgba(95, 209, 249, 0.3)',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    backgroundImage: 'linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent)',
+                    backgroundSize: '20px 20px'
+                  }}
+                  onError={(e) => {
+                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTFBMkYiLz48cGF0aCBkPSJNODUgNTVIMTE1VjE0NUg4NVY1NVoiIGZpbGw9IiM1RkQxRjkiLz48cGF0aCBkPSJNNTUgODVIMTQ1VjExNUg1NVY4NVoiIGZpbGw9IiM1RkQxRjkiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjQwIiBzdHJva2U9IiM1RkQxRjkiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==';
+                  }}
+                />
+                <RarityChip 
+                  label={selectedItem.rarity} 
+                  rarity={selectedItem.rarity}
+                  size="small"
+                  sx={{ position: 'absolute', top: 10, right: 10 }}
+                />
+              </Box>
+              <Box sx={{ flex: '1 1 auto' }}>
+                <Typography variant="body1" sx={{ color: '#eaf6ff', mb: 2 }}>
+                  {selectedItem.description}
+                </Typography>
+                
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" sx={{ color: '#eaf6ff', opacity: 0.7 }}>
+                      Category
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#5FD1F9' }}>
+                      {selectedItem.category || 'Miscellaneous'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" sx={{ color: '#eaf6ff', opacity: 0.7 }}>
+                      Level Required
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#5FD1F9' }}>
+                      {selectedItem.levelRequired || 1}
+                    </Typography>
+                  </Grid>
+                  {selectedItem.stats && Object.entries(selectedItem.stats).map(([key, value]) => (
+                    <Grid item xs={6} key={key}>
+                      <Typography variant="body2" sx={{ color: '#eaf6ff', opacity: 0.7 }}>
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: value > 0 ? '#4caf50' : '#f44336' }}>
+                        {value > 0 ? `+${value}` : value}
+                      </Typography>
+                    </Grid>
+                  ))}
+                </Grid>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                  <Typography variant="h6" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
+                    {selectedItem.price} G
+                  </Typography>
+                  <Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <StyledButton
+                        startIcon={<AddShoppingCartIcon />}
+                        onClick={() => {
+                          handleAddToCart(selectedItem);
+                          handleCloseItemDetails();
+                        }}
+                        sx={{ mr: 1 }}
+                      >
+                        Add to Cart
+                      </StyledButton>
+                      <StyledButton
+                        onClick={() => {
+                          handleCloseItemDetails();
+                          handleOpenPurchaseDialog(selectedItem);
+                        }}
+                        sx={{ 
+                          background: 'rgba(95, 209, 249, 0.2)',
+                          '&:hover': {
+                            background: 'rgba(95, 209, 249, 0.3)',
+                          }
+                        }}
+                      >
+                        Buy Now
+                      </StyledButton>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </DialogContent>
+        </>
+      )}
+    </Dialog>
+  );
+
+  // Render marketplace with enhanced UI
+  return (
+    <MarketplaceContainer>
+      <MarketplaceHeader>
+        <MarketplaceTitle variant={isDesktop ? "h3" : "h4"}>
+          Marketplace
+        </MarketplaceTitle>
+        <MarketplaceSubtitle variant="subtitle1">
+          Discover and acquire powerful items for your journey
+        </MarketplaceSubtitle>
+      </MarketplaceHeader>
+
+      {/* Top Action Bar */}
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: isDesktop ? 'row' : 'column', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        mb: 4,
+        gap: 2
+      }}>
+        {/* Sell Item Button */}
+        <StyledButton 
+          onClick={handleOpenSellDialog}
+          startIcon={<AttachMoneyIcon />}
+          sx={{ 
+            background: 'rgba(76, 175, 80, 0.2)',
+            border: '1px solid rgba(76, 175, 80, 0.5)',
+            boxShadow: '0 0 10px rgba(76, 175, 80, 0.3)',
+            color: '#ffffff',
+            '&:hover': {
+              background: 'rgba(76, 175, 80, 0.3)',
+              boxShadow: '0 0 15px rgba(76, 175, 80, 0.5)',
+            },
+            [theme.breakpoints.down('sm')]: {
+              width: '100%',
+              mb: 2
+            },
+          }}
+        >
+          Sell an Item
+        </StyledButton>
+        
+        {/* Search and Filter Bar */}
+        <Box sx={{ 
+          display: 'flex', 
+          flex: 1,
+          flexDirection: isDesktop ? 'row' : 'column', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          gap: 2,
+          width: '100%'
+        }}>
+          <SearchBar>
+          <SearchIconWrapper>
+            <SearchIcon />
+          </SearchIconWrapper>
+          <StyledInputBase
+            placeholder="Search items…"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            fullWidth
+            variant="outlined"
+          />
+        </SearchBar>
+        
+          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Filter Items">
+            <IconButton 
+              onClick={handleFilterMenuOpen}
+              sx={{ 
+                color: selectedRarities.length > 0 ? '#5FD1F9' : '#eaf6ff',
+                border: '1px solid rgba(95, 209, 249, 0.3)',
+                '&:hover': { backgroundColor: 'rgba(95, 209, 249, 0.1)' }
+              }}
+            >
+              <Badge badgeContent={selectedRarities.length} color="primary" invisible={selectedRarities.length === 0}>
+                <FilterListIcon />
+              </Badge>
+            </IconButton>
+          </Tooltip>
+          
+          <Menu
+            anchorEl={filterMenuAnchor}
+            open={Boolean(filterMenuAnchor)}
+            onClose={handleFilterMenuClose}
+            PaperProps={{
+              sx: {
+                background: 'rgba(10, 25, 41, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(95, 209, 249, 0.3)',
+                boxShadow: '0 0 15px rgba(95, 209, 249, 0.2)',
+                p: 2,
+                minWidth: 250,
+              }
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ color: '#5FD1F9', mb: 1, px: 2 }}>
+              Filter by Rarity
+            </Typography>
+            {rarityOptions.map((rarity) => (
+              <MenuItem 
+                key={rarity} 
+                onClick={() => handleRarityToggle(rarity)}
+                sx={{ 
+                  color: '#eaf6ff',
+                  backgroundColor: selectedRarities.includes(rarity) ? 'rgba(95, 209, 249, 0.1)' : 'transparent',
+                }}
+              >
+                <Chip 
+                  label={rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                  rarity={rarity}
+                  size="small"
+                  sx={{ mr: 1 }}
+                />
+                {selectedRarities.includes(rarity) ? <StarIcon fontSize="small" sx={{ color: '#5FD1F9' }} /> : <StarBorderIcon fontSize="small" />}
+              </MenuItem>
+            ))}
+            
+            <Divider sx={{ my: 2, borderColor: 'rgba(95, 209, 249, 0.3)' }} />
+            
+            <Typography variant="subtitle1" sx={{ color: '#5FD1F9', mb: 1, px: 2 }}>
+              Price Range
+            </Typography>
+            <Box sx={{ px: 2, width: '100%' }}>
+              <Slider
+                value={priceRange}
+                onChange={(e, newValue) => setPriceRange(newValue)}
+                valueLabelDisplay="auto"
+                min={0}
+                max={10000}
+                sx={{ 
+                  color: '#5FD1F9',
+                  '& .MuiSlider-thumb': {
+                    '&:hover, &.Mui-focusVisible': {
+                      boxShadow: '0 0 0 8px rgba(95, 209, 249, 0.16)',
+                    },
+                  },
+                }}
+              />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', color: '#eaf6ff' }}>
+                <Typography variant="caption">{priceRange[0]} G</Typography>
+                <Typography variant="caption">{priceRange[1]} G</Typography>
+              </Box>
+            </Box>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <StyledButton 
+                size="small" 
+                onClick={() => {
+                  setSelectedRarities([]);
+                  setPriceRange([0, 10000]);
+                }}
+                sx={{ mr: 1 }}
+              >
+                Reset
+              </StyledButton>
+              <StyledButton 
+                size="small" 
+                onClick={handleFilterMenuClose}
+              >
+                Apply
+              </StyledButton>
+            </Box>
+          </Menu>
+          
+          <Tooltip title="Sort Items">
+            <IconButton 
+              onClick={handleSortMenuOpen}
+              sx={{ 
+                color: sortOption !== 'default' ? '#5FD1F9' : '#eaf6ff',
+                border: '1px solid rgba(95, 209, 249, 0.3)',
+                '&:hover': { backgroundColor: 'rgba(95, 209, 249, 0.1)' }
+              }}
+            >
+              <SortIcon />
+            </IconButton>
+          </Tooltip>
+          
+          <Menu
+            anchorEl={sortMenuAnchor}
+            open={Boolean(sortMenuAnchor)}
+            onClose={handleSortMenuClose}
+            PaperProps={{
+              sx: {
+                background: 'rgba(10, 25, 41, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(95, 209, 249, 0.3)',
+                boxShadow: '0 0 15px rgba(95, 209, 249, 0.2)',
+              }
+            }}
+          >
+            {sortOptions.map((option) => (
+              <MenuItem 
+                key={option.value} 
+                onClick={() => handleSortChange(option.value)}
+                sx={{ 
+                  color: '#eaf6ff',
+                  backgroundColor: sortOption === option.value ? 'rgba(95, 209, 249, 0.1)' : 'transparent',
+                }}
+              >
+                {option.label}
+              </MenuItem>
+            ))}
+          </Menu>
+          
+          <Tooltip title="Shopping Cart">
+            <IconButton 
+              onClick={handleCartOpen}
+              sx={{ 
+                color: cart.length > 0 ? '#5FD1F9' : '#eaf6ff',
+                border: '1px solid rgba(95, 209, 249, 0.3)',
+                '&:hover': { backgroundColor: 'rgba(95, 209, 249, 0.1)' }
+              }}
+            >
+              <CartBadge badgeContent={cart.length} color="primary" invisible={cart.length === 0}>
+                <ShoppingCartIcon />
+              </CartBadge>
+            </IconButton>
+          </Tooltip>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Category Tabs */}
+      <CategoryTabs 
+        value={categoryTab} 
+        onChange={handleCategoryChange}
+        variant="scrollable"
+        scrollButtons="auto"
+        allowScrollButtonsMobile
+        sx={{ mb: 4 }}
+      >
+        {categories.map((category, index) => (
+          <Tab key={index} label={category} />
+        ))}
+      </CategoryTabs>
+
+      {/* Featured Items Section */}
+      {categoryTab === 0 && featuredItems && featuredItems.length > 0 && (
+        <Paper 
+          sx={{ 
+            p: 3, 
+            mb: 4, 
+            background: 'rgba(10, 25, 41, 0.7)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(95, 209, 249, 0.3)',
+            boxShadow: '0 0 15px rgba(95, 209, 249, 0.2)',
+          }}
+        >
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              color: '#5FD1F9', 
+              mb: 2, 
+              textAlign: 'center',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1
+            }}
+          >
+            <StarIcon sx={{ color: '#FFD700' }} />
+            Featured Items
+            <StarIcon sx={{ color: '#FFD700' }} />
+          </Typography>
+          
+          <Grid container spacing={3}>
+            {featuredItems.slice(0, 4).map((item, index) => (
+              <Grid item xs={12} sm={6} md={3} key={item._id || index}>
+                <ItemCard>
+                  <CardMedia
+                    component="img"
+                    height="140"
+                    image={item.image || `/images/items/${item.id || 'default'}.png`}
+                    alt={item.name}
+                    sx={{ 
+                      objectFit: 'contain', 
+                      p: 1,
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      backgroundImage: 'linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent)',
+                      backgroundSize: '20px 20px'
+                    }}
+                    onError={(e) => {
+                      // Use a data URI for a default item image to prevent blinking
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTFBMkYiLz48cGF0aCBkPSJNODUgNTVIMTE1VjE0NUg4NVY1NVoiIGZpbGw9IiM1RkQxRjkiLz48cGF0aCBkPSJNNTUgODVIMTQ1VjExNUg1NVY4NVoiIGZpbGw9IiM1RkQxRjkiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjQwIiBzdHJva2U9IiM1RkQxRjkiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==';
+                    }}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="h6" sx={{ color: '#5FD1F9', fontWeight: 'bold' }}>
+                        {item.name}
+                      </Typography>
+                      <RarityChip label={item.rarity} rarity={item.rarity} size="small" />
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#eaf6ff', mb: 2, height: '3em', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.description}
+                    </Typography>
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
+                    <Typography variant="body1" sx={{ color: '#FFD700', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                      <AttachMoneyIcon fontSize="small" sx={{ color: '#FFD700' }} />
+                      {item.price} G
+                    </Typography>
+                    <Box>
+                      <IconButton 
+                        size="small" 
+                        sx={{ color: '#5FD1F9', mr: 1 }}
+                        onClick={() => handleItemDetails(item)}
+                      >
+                        <InfoOutlinedIcon />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        sx={{ color: '#5FD1F9' }}
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        <AddShoppingCartIcon />
+                      </IconButton>
+                    </Box>
+                  </CardActions>
+                  <ItemOverlay className="item-overlay">
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <StyledButton 
+                        variant="contained" 
+                        startIcon={<InfoOutlinedIcon />}
+                        onClick={() => handleItemDetails(item)}
+                      >
+                        Details
+                      </StyledButton>
+                      <StyledButton 
+                        variant="contained" 
+                        startIcon={<AddShoppingCartIcon />}
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        Add to Cart
+                      </StyledButton>
+                    </Box>
+                  </ItemOverlay>
+                </ItemCard>
               </Grid>
             ))}
           </Grid>
-        )}
-      </SystemPanel>
-      
-      {/* Shopping Cart */}
-      {cart.length > 0 && (
-        <SystemPanel sx={{ mt: isDesktop ? 4 : 2, maxWidth: isDesktop ? 700 : '100vw', margin: isDesktop ? '32px auto' : 0 }}>
-          <Box sx={{ p: isDesktop ? 2 : 1 }}>
-            {cart.map(item => (
-              <Box key={item._id} sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                mb: isDesktop ? 2 : 1,
-                p: isDesktop ? 2 : 1,
-                borderRadius: 2,
-                bgcolor: 'background.paper',
-                boxShadow: 1
-              }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Avatar 
-                    src={item.image || '/images/items/default-item.png'} 
-                    alt={item.name} 
-                    sx={{ width: isDesktop ? 50 : 40, height: isDesktop ? 50 : 40, marginRight: isDesktop ? 16 : 8, borderRadius: 8, boxShadow: '0 0 8px #00eaff99' }}
+        </Paper>
+      )}
+
+      {/* All Items Section */}
+      <ItemsContainer>
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            color: '#5FD1F9', 
+            mb: 3, 
+            textAlign: 'center',
+            fontWeight: 'bold'
+          }}
+        >
+          {categoryTab === 0 ? 'All Items' : categories[categoryTab]}
+        </Typography>
+        
+        {filteredItems && filteredItems.length > 0 ? (
+          <Grid container spacing={3}>
+            {filteredItems.map((item, index) => (
+              <Grid item xs={12} sm={6} md={3} key={item._id || index}>
+                <ItemCard>
+                  <CardMedia
+                    component="img"
+                    height="140"
+                    image={item.image || `/images/items/${item.id || 'default'}.png`}
+                    alt={item.name}
+                    sx={{ 
+                      objectFit: 'contain', 
+                      p: 1,
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      backgroundImage: 'linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent)',
+                      backgroundSize: '20px 20px'
+                    }}
+                    onError={(e) => {
+                      // Use a data URI for a default item image to prevent blinking
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTFBMkYiLz48cGF0aCBkPSJNODUgNTVIMTE1VjE0NUg4NVY1NVoiIGZpbGw9IiM1RkQxRjkiLz48cGF0aCBkPSJNNTUgODVIMTQ1VjExNUg1NVY4NVoiIGZpbGw9IiM1RkQxRjkiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjQwIiBzdHJva2U9IiM1RkQxRjkiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==';
+                    }}
                   />
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#eaf6ff' }}>
-                      {item.name}
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="h6" sx={{ color: '#5FD1F9', fontWeight: 'bold' }}>
+                        {item.name}
+                      </Typography>
+                      <RarityChip label={item.rarity} rarity={item.rarity} size="small" />
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#eaf6ff', mb: 2, height: '3em', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.description}
                     </Typography>
-                    <Chip 
-                      label={item.rarity} 
-                      size="small" 
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
+                    <Typography variant="body1" sx={{ color: '#FFD700', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                      <AttachMoneyIcon fontSize="small" sx={{ color: '#FFD700' }} />
+                      {item.price} G
+                    </Typography>
+                    <Box>
+                      <IconButton 
+                        size="small" 
+                        sx={{ color: '#5FD1F9', mr: 1 }}
+                        onClick={() => handleItemDetails(item)}
+                      >
+                        <InfoOutlinedIcon />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        sx={{ color: '#5FD1F9' }}
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        <AddShoppingCartIcon />
+                      </IconButton>
+                    </Box>
+                  </CardActions>
+                  <ItemOverlay className="item-overlay">
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <StyledButton 
+                        variant="contained" 
+                        startIcon={<InfoOutlinedIcon />}
+                        onClick={() => handleItemDetails(item)}
+                      >
+                        Details
+                      </StyledButton>
+                      <StyledButton 
+                        variant="contained" 
+                        startIcon={<AddShoppingCartIcon />}
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        Add to Cart
+                      </StyledButton>
+                    </Box>
+                  </ItemOverlay>
+                </ItemCard>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <NoItemsMessage>
+            {searchQuery ? 
+              `No items found matching "${searchQuery}"` : 
+              categoryTab > 0 ? 
+                `No ${categories[categoryTab].toLowerCase()} items available` : 
+                'No items available'
+            }
+          </NoItemsMessage>
+        )}
+      </ItemsContainer>
+      
+      {/* Render Cart Drawer */}
+      {renderCartDrawer()}
+      
+      {/* Render Item Details Dialog */}
+      {renderItemDetailsDialog()}
+      
+      {/* Sell Item Dialog */}
+      <Dialog
+        open={sellDialogOpen}
+        onClose={handleCloseSellDialog}
+        PaperProps={{
+          sx: {
+            background: 'rgba(10, 25, 41, 0.9)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(95, 209, 249, 0.3)',
+            boxShadow: '0 0 25px rgba(95, 209, 249, 0.3)',
+            maxWidth: '600px',
+            width: '100%',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#5FD1F9', borderBottom: '1px solid rgba(95, 209, 249, 0.3)' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+              Sell an Item
+            </Typography>
+            <IconButton onClick={handleCloseSellDialog} sx={{ color: '#eaf6ff' }}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Item Name"
+              value={sellItemName}
+              onChange={(e) => setSellItemName(e.target.value)}
+              fullWidth
+              variant="outlined"
+              InputLabelProps={{ sx: { color: '#5FD1F9' } }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(95, 209, 249, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(95, 209, 249, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#5FD1F9',
+                  },
+                  color: '#eaf6ff',
+                },
+              }}
+            />
+            
+            <TextField
+              label="Description"
+              value={sellItemDescription}
+              onChange={(e) => setSellItemDescription(e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+              variant="outlined"
+              InputLabelProps={{ sx: { color: '#5FD1F9' } }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(95, 209, 249, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(95, 209, 249, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#5FD1F9',
+                  },
+                  color: '#eaf6ff',
+                },
+              }}
+            />
+            
+            <TextField
+              label="Price (Gold)"
+              type="number"
+              value={sellItemPrice}
+              onChange={(e) => setSellItemPrice(Number(e.target.value))}
+              fullWidth
+              variant="outlined"
+              InputProps={{
+                startAdornment: <InputAdornment position="start" sx={{ color: '#FFD700' }}>G</InputAdornment>,
+              }}
+              InputLabelProps={{ sx: { color: '#5FD1F9' } }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(95, 209, 249, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(95, 209, 249, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#5FD1F9',
+                  },
+                  color: '#eaf6ff',
+                },
+              }}
+            />
+            
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2" sx={{ color: '#5FD1F9', mb: 1 }}>
+                  Category
+                </Typography>
+                <TextField
+                  select
+                  value={sellItemCategory}
+                  onChange={(e) => setSellItemCategory(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(95, 209, 249, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(95, 209, 249, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#5FD1F9',
+                      },
+                      color: '#eaf6ff',
+                    },
+                  }}
+                >
+                  {categories.slice(1).map((category, index) => (
+                    <MenuItem key={index} value={category.toLowerCase()}>{category}</MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+              
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2" sx={{ color: '#5FD1F9', mb: 1 }}>
+                  Rarity
+                </Typography>
+                <TextField
+                  select
+                  value={sellItemRarity}
+                  onChange={(e) => setSellItemRarity(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(95, 209, 249, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(95, 209, 249, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#5FD1F9',
+                      },
+                      color: '#eaf6ff',
+                    },
+                  }}
+                >
+                  {rarityOptions.map((rarity) => (
+                    <MenuItem key={rarity} value={rarity}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <RarityChip label={rarity} rarity={rarity} size="small" sx={{ mr: 1 }} />
+                        <Typography>
+                          {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <StyledButton onClick={handleCloseSellDialog}>
+            Cancel
+          </StyledButton>
+          <StyledButton 
+            onClick={handleSellItem}
+            disabled={!sellItemName || !sellItemDescription || sellItemPrice <= 0}
+            sx={{ 
+              background: 'rgba(95, 209, 249, 0.2)',
+              '&:hover': {
+                background: 'rgba(95, 209, 249, 0.3)',
+              },
+              '&.Mui-disabled': {
+                background: 'rgba(95, 209, 249, 0.05)',
+                color: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
+          >
+            List for Sale
+          </StyledButton>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Purchase Confirmation Dialog */}
+      <Dialog
+        open={purchaseDialogOpen}
+        onClose={handleClosePurchaseDialog}
+        PaperProps={{
+          sx: {
+            background: 'rgba(10, 25, 41, 0.9)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(95, 209, 249, 0.3)',
+            boxShadow: '0 0 25px rgba(95, 209, 249, 0.3)',
+            maxWidth: '500px',
+            width: '100%',
+          }
+        }}
+      >
+        {!purchaseSuccess ? (
+          <>
+            <DialogTitle sx={{ color: '#5FD1F9', borderBottom: '1px solid rgba(95, 209, 249, 0.3)' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                  Confirm Purchase
+                </Typography>
+                <IconButton onClick={handleClosePurchaseDialog} sx={{ color: '#eaf6ff' }}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              {selectedItem && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body1" sx={{ color: '#eaf6ff', textAlign: 'center' }}>
+                    Are you sure you want to purchase:
+                  </Typography>
+                  
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2, 
+                    p: 2, 
+                    border: '1px solid rgba(95, 209, 249, 0.3)',
+                    borderRadius: 1,
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    width: '100%'
+                  }}>
+                    <CardMedia
+                      component="img"
+                      image={selectedItem.image || `/images/items/${selectedItem.id || 'default'}.png`}
+                      alt={selectedItem.name}
                       sx={{ 
-                        bgcolor: getRarityColor(item.rarity), 
-                        color: 'white',
-                        mr: isDesktop ? 1 : 0
-                      }} 
+                        width: 60, 
+                        height: 60, 
+                        objectFit: 'contain',
+                        borderRadius: 1,
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        backgroundImage: 'linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1) 75%, transparent 75%, transparent)',
+                        backgroundSize: '20px 20px'
+                      }}
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxMTFBMkYiLz48cGF0aCBkPSJNODUgNTVIMTE1VjE0NUg4NVY1NVoiIGZpbGw9IiM1RkQxRjkiLz48cGF0aCBkPSJNNTUgODVIMTQ1VjExNUg1NVY4NVoiIGZpbGw9IiM1RkQxRjkiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjQwIiBzdHJva2U9IiM1RkQxRjkiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==';
+                      }}
                     />
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      Quantity: {item.quantity} × {formatCurrency(item.price)} = {formatCurrency(item.quantity * item.price)}
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h6" sx={{ color: '#5FD1F9' }}>
+                        {selectedItem.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" sx={{ color: '#eaf6ff', opacity: 0.7 }}>
+                          {selectedItem.category || 'Miscellaneous'}
+                        </Typography>
+                        <RarityChip label={selectedItem.rarity} rarity={selectedItem.rarity} size="small" />
+                      </Box>
+                    </Box>
+                  </Box>
+                  
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    width: '100%', 
+                    p: 2, 
+                    border: '1px solid rgba(95, 209, 249, 0.3)',
+                    borderRadius: 1,
+                    background: 'rgba(0, 0, 0, 0.3)',
+                  }}>
+                    <Typography variant="body1" sx={{ color: '#eaf6ff' }}>
+                      Price:
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
+                      {selectedItem.price} G
                     </Typography>
                   </Box>
+                  
+                  <Typography variant="body2" sx={{ color: '#eaf6ff', opacity: 0.7, textAlign: 'center', mt: 1 }}>
+                    This item will be added to your inventory immediately after purchase.
+                  </Typography>
                 </Box>
-                <SystemButton 
-                  variant="outlined" 
-                  color="error" 
-                  size="small"
-                  onClick={() => handleRemoveFromCart(item._id)}
-                >
-                  Remove
-                </SystemButton>
-              </Box>
-            ))}
-            <Divider sx={{ my: isDesktop ? 2 : 1 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" sx={{ color: '#eaf6ff' }}>
-                Total: {formatCurrency(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
-              </Typography>
-              <SystemButton 
-                variant="contained" 
-                color="primary" 
-                size="large"
-                onClick={() => {
-                  if (cart.length === 1) {
-                    handleBuyNow(cart[0]);
-                  } else {
-                    // Handle multiple items checkout
-                    setNotification({
-                      show: true,
-                      message: 'Multi-item checkout coming soon!',
-                      type: 'info'
-                    });
+              )}
+            </DialogContent>
+            <DialogActions sx={{ p: 3, pt: 0 }}>
+              <StyledButton onClick={handleClosePurchaseDialog}>
+                Cancel
+              </StyledButton>
+              <StyledButton 
+                onClick={handlePurchaseConfirm}
+                sx={{ 
+                  background: 'rgba(95, 209, 249, 0.2)',
+                  '&:hover': {
+                    background: 'rgba(95, 209, 249, 0.3)',
                   }
                 }}
               >
-                Checkout
-              </SystemButton>
-            </Box>
-          </Box>
-        </SystemPanel>
-      )}
-      
-      {/* Item Details Dialog */}
-      <Dialog 
-        open={detailsOpen} 
-        onClose={handleCloseDetails}
-        maxWidth="md"
-        fullWidth
-      >
-        {selectedItem && (
-          <>
-            <DialogTitle sx={{ 
-              bgcolor: 'background.paper', 
-              borderBottom: 1, 
-              borderColor: 'divider',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <Typography variant="h5" sx={{ color: '#eaf6ff' }}>{selectedItem.name}</Typography>
-              <Chip 
-                label={selectedItem.rarity} 
-                sx={{ 
-                  bgcolor: getRarityColor(selectedItem.rarity), 
-                  color: 'white' 
-                }} 
-              />
-            </DialogTitle>
-            <DialogContent sx={{ p: isDesktop ? 3 : 2 }}>
-              <Grid container spacing={isDesktop ? 3 : 2}>
-                <Grid item xs={12} md={4}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center',
-                    height: '100%'
-                  }}>
-                    <Avatar 
-                      src={selectedItem.image || '/images/items/default-item.png'} 
-                      alt={selectedItem.name} 
-                      sx={{ 
-                        maxWidth: '100%', 
-                        maxHeight: isDesktop ? 300 : 200, 
-                        borderRadius: 8,
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
-                      }}
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={8}>
-                  <Typography variant="body1" sx={{ mb: isDesktop ? 2 : 1, color: '#eaf6ff' }}>
-                    {selectedItem.description}
-                  </Typography>
-                  
-                  <Grid container spacing={isDesktop ? 2 : 1} sx={{ mb: isDesktop ? 2 : 1 }}>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>Type</Typography>
-                      <Typography variant="body1">{selectedItem.type}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>Level</Typography>
-                      <Typography variant="body1">{selectedItem.level}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>Price</Typography>
-                      <Typography variant="body1">{formatCurrency(selectedItem.price)}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>Sell Value</Typography>
-                      <Typography variant="body1">{formatCurrency(selectedItem.price * 0.7)}</Typography>
-                    </Grid>
-                  </Grid>
-                  
-                  {selectedItem.effects && selectedItem.effects.length > 0 && (
-                    <Box sx={{ mb: isDesktop ? 2 : 1 }}>
-                      <Typography variant="h6" sx={{ mb: isDesktop ? 1 : 0.5, color: '#eaf6ff' }}>Effects</Typography>
-                      <Grid container spacing={isDesktop ? 1 : 0.5}>
-                        {selectedItem.effects.map((effect, index) => (
-                          <Grid item xs={6} key={index}>
-                            <Chip 
-                              label={`${effect.stat} ${effect.value > 0 ? '+' : ''}${effect.value}${effect.isPercentage ? '%' : ''}`} 
-                              sx={{ mb: isDesktop ? 1 : 0.5 }}
-                            />
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </Box>
-                  )}
-                  
-                  {selectedItem.requirements && (
-                    <Box sx={{ mb: isDesktop ? 2 : 1 }}>
-                      <Typography variant="h6" sx={{ mb: isDesktop ? 1 : 0.5, color: '#eaf6ff' }}>Requirements</Typography>
-                      <Grid container spacing={isDesktop ? 1 : 0.5}>
-                        <Grid item xs={6}>
-                          <Typography variant="body2">
-                            Level: {selectedItem.requirements.level || 1}
-                          </Typography>
-                        </Grid>
-                        {selectedItem.requirements.stats && Object.entries(selectedItem.requirements.stats)
-                          .filter(([_, value]) => value > 0)
-                          .map(([stat, value]) => (
-                            <Grid item xs={6} key={stat}>
-                              <Typography variant="body2">
-                                {stat.charAt(0).toUpperCase() + stat.slice(1)}: {value}
-                              </Typography>
-                            </Grid>
-                          ))
-                        }
-                      </Grid>
-                    </Box>
-                  )}
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: isDesktop ? 2 : 1 }}>
-                    {isItemOwned(selectedItem._id) ? (
-                      <SystemButton 
-                        variant="outlined" 
-                        color="secondary" 
-                        onClick={() => {
-                          handleCloseDetails();
-                          handleSellItem(selectedItem);
-                        }}
-                      >
-                        Sell Item
-                      </SystemButton>
-                    ) : (
-                      <>
-                        <SystemButton 
-                          variant="outlined" 
-                          onClick={() => {
-                            handleAddToCart(selectedItem);
-                            handleCloseDetails();
-                          }}
-                          sx={{ mr: isDesktop ? 1 : 0 }}
-                        >
-                          Add to Cart
-                        </SystemButton>
-                        <SystemButton 
-                          variant="contained" 
-                          onClick={() => {
-                            handleCloseDetails();
-                            handleBuyNow(selectedItem);
-                          }}
-                        >
-                          Buy Now
-                        </SystemButton>
-                      </>
-                    )}
-                  </Box>
-                </Grid>
-              </Grid>
-            </DialogContent>
-            <DialogActions sx={{ p: isDesktop ? 2 : 1, borderTop: 1, borderColor: 'divider' }}>
-              <SystemButton onClick={handleCloseDetails}>Close</SystemButton>
+                Confirm Purchase
+              </StyledButton>
             </DialogActions>
           </>
-        )}
-      </Dialog>
-      
-      {/* Purchase Dialog */}
-      <Dialog 
-        open={purchaseDialogOpen} 
-        onClose={() => setPurchaseDialogOpen(false)}
-      >
-        {selectedItem && (
+        ) : (
           <>
-            <DialogTitle>
-              {purchaseType === 'buy' ? 'Buy Item' : 'Sell Item'}
-            </DialogTitle>
-            <DialogContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: isDesktop ? 2 : 1 }}>
-                <Avatar 
-                  src={selectedItem.image || '/images/items/default-item.png'} 
-                  alt={selectedItem.name} 
-                  sx={{ width: isDesktop ? 50 : 40, height: isDesktop ? 50 : 40, marginRight: isDesktop ? 16 : 8, borderRadius: 8, boxShadow: '0 0 8px #00eaff99' }}
-                />
-                <Typography variant="h6" sx={{ color: '#eaf6ff' }}>{selectedItem.name}</Typography>
-              </Box>
-              
-              <TextField
-                label="Quantity"
-                type="number"
-                value={purchaseQuantity}
-                onChange={(e) => setPurchaseQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                fullWidth
-                margin="normal"
-                InputProps={{ inputProps: { min: 1 } }}
-              />
-              
-              <Typography variant="body1" sx={{ mt: isDesktop ? 2 : 1, color: '#eaf6ff' }}>
-                {purchaseType === 'buy' ? 'Total Cost' : 'Total Value'}: {formatCurrency(purchaseQuantity * (
-                  purchaseType === 'buy' 
-                    ? selectedItem.price 
-                    : selectedItem.price * 0.7
-                ))}
-              </Typography>
-              
-              {purchaseType === 'buy' && (
-                <Typography variant="body2" sx={{ color: 'text.secondary', mt: isDesktop ? 1 : 0.5 }}>
-                  Your Currency: {formatCurrency(user?.currency || 0)}
+            <DialogTitle sx={{ color: '#5FD1F9', borderBottom: '1px solid rgba(95, 209, 249, 0.3)' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                  Purchase Complete
                 </Typography>
-              )}
-              
-              {purchaseType === 'buy' && user?.currency < (purchaseQuantity * selectedItem.price) && (
-                <Alert severity="error" sx={{ mt: isDesktop ? 2 : 1 }}>
-                  You don't have enough currency to make this purchase.
-                </Alert>
-              )}
+                <IconButton onClick={handleClosePurchaseDialog} sx={{ color: '#eaf6ff' }}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 2 }}>
+                <Box sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  background: 'rgba(76, 175, 80, 0.2)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  border: '2px solid rgba(76, 175, 80, 0.5)',
+                  mb: 2
+                }}>
+                  <Typography variant="h3" sx={{ color: '#4caf50' }}>✓</Typography>
+                </Box>
+                
+                <Typography variant="h6" sx={{ color: '#5FD1F9', textAlign: 'center' }}>
+                  Purchase Successful!
+                </Typography>
+                
+                <Typography variant="body1" sx={{ color: '#eaf6ff', textAlign: 'center' }}>
+                  You have successfully purchased {selectedItem?.name}.
+                </Typography>
+                
+                <Typography variant="body2" sx={{ color: '#eaf6ff', opacity: 0.7, textAlign: 'center' }}>
+                  The item has been added to your inventory.
+                </Typography>
+              </Box>
             </DialogContent>
-            <DialogActions>
-              <SystemButton onClick={() => setPurchaseDialogOpen(false)}>Cancel</SystemButton>
-              <SystemButton 
-                onClick={handleConfirmPurchase} 
-                variant="contained"
-                disabled={purchaseType === 'buy' && user?.currency < (purchaseQuantity * selectedItem.price)}
+            <DialogActions sx={{ p: 3, pt: 0 }}>
+              <StyledButton 
+                onClick={handleClosePurchaseDialog}
+                sx={{ 
+                  background: 'rgba(95, 209, 249, 0.2)',
+                  '&:hover': {
+                    background: 'rgba(95, 209, 249, 0.3)',
+                  }
+                }}
+                fullWidth
               >
-                Confirm
-              </SystemButton>
+                Continue Shopping
+              </StyledButton>
             </DialogActions>
           </>
         )}
       </Dialog>
-    </Container>
+    </MarketplaceContainer>
   );
 };
 

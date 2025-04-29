@@ -8,6 +8,60 @@ import { v4 as uuidv4 } from 'uuid';
 // Helper function to simulate network delay
 const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Get current user ID from localStorage or session
+const getCurrentUserId = () => {
+  try {
+    // Try to get user from localStorage or sessionStorage
+    const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
+    return user && user._id ? user._id : 'guest';
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return 'guest';
+  }
+};
+
+// Load data from localStorage if available or use defaults
+const loadFromStorage = (key, defaultValue) => {
+  try {
+    // Get user-specific key
+    const userId = getCurrentUserId();
+    const userKey = `${userId}_${key}`;
+    
+    console.log(`Loading data for user ${userId} with key ${userKey}`);
+    
+    // Try localStorage first
+    let stored = localStorage.getItem(userKey);
+    
+    // If not in localStorage, try sessionStorage
+    if (!stored) {
+      stored = sessionStorage.getItem(userKey);
+    }
+    
+    return stored ? JSON.parse(stored) : defaultValue;
+  } catch (error) {
+    console.error(`Error loading ${key} from storage:`, error);
+    return defaultValue;
+  }
+};
+
+// Save data to localStorage and sessionStorage
+const saveToStorage = (key, data) => {
+  try {
+    // Get user-specific key
+    const userId = getCurrentUserId();
+    const userKey = `${userId}_${key}`;
+    
+    console.log(`Saving data for user ${userId} with key ${userKey}`);
+    const serializedData = JSON.stringify(data);
+    
+    // Save to both localStorage and sessionStorage for redundancy
+    localStorage.setItem(userKey, serializedData);
+    sessionStorage.setItem(userKey, serializedData);
+  } catch (error) {
+    console.error(`Error saving ${key} to storage:`, error);
+  }
+};
+
 // Mock quest database
 const mockQuestDB = {
   quests: [
@@ -29,16 +83,17 @@ const mockQuestDB = {
         currency: 50,
         statPoints: 0
       },
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     },
     {
       _id: 'quest-2',
-      title: 'Study Session',
-      description: 'Complete a focused 1-hour study session without distractions.',
+      title: 'Read a Book',
+      description: 'Read at least 30 pages of a book to improve your knowledge.',
       type: 'daily',
       difficulty: 'easy',
-      category: 'study',
-      requirements: 'Study for at least 1 hour without checking social media or other distractions.',
+      category: 'education',
+      requirements: 'Read at least 30 pages of any book.',
       timeLimit: 24,
       requiresProof: false,
       status: 'available',
@@ -47,55 +102,62 @@ const mockQuestDB = {
         currency: 30,
         statPoints: 0
       },
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     },
+    // Emergency Quest
     {
-      _id: 'quest-3',
-      title: 'Meditation Challenge',
-      description: 'Complete a 15-minute meditation session for mental clarity.',
-      type: 'daily',
-      difficulty: 'easy',
-      category: 'wellness',
-      requirements: 'Meditate for at least 15 minutes using any meditation technique.',
-      timeLimit: 24,
-      requiresProof: false,
+      _id: 'emergency-1',
+      title: 'Critical Bug Fix',
+      description: 'A critical bug has been discovered in the system. Fix it immediately!',
+      type: 'emergency',
+      difficulty: 'hard',
+      category: 'work',
+      requirements: 'Identify and fix the critical bug in the system.',
+      timeLimit: 4,
+      requiresProof: true,
+      proofType: 'screenshot',
       status: 'available',
       rewards: {
-        experience: 70,
-        currency: 25,
-        statPoints: 0
-      },
-      createdAt: new Date().toISOString() // Today
-    }
-  ],
-  activeQuests: [],
-  completedQuests: [],
-  customQuests: [
-    {
-      _id: 'custom-1',
-      title: 'Learn a New Programming Language',
-      description: 'Complete a basic tutorial in a programming language you\'ve never used before.',
-      type: 'custom',
-      difficulty: 'hard',
-      category: 'study',
-      requirements: 'Complete at least one project or exercise in the new language.',
-      timeLimit: 72,
-      requiresProof: true,
-      proofType: 'image',
-      isPublic: false,
-      createdBy: {
-        _id: 'user-1',
-        username: 'CurrentUser'
-      },
-      rewards: {
-        experience: 200,
-        currency: 100,
+        experience: 300,
+        currency: 200,
         statPoints: 1
       },
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    // Punishment Quest
+    {
+      _id: 'punishment-1',
+      title: 'Extra Training',
+      description: 'You failed to complete your daily tasks. Complete extra training as punishment.',
+      type: 'punishment',
+      difficulty: 'hard',
+      category: 'fitness',
+      requirements: 'Complete 100 push-ups, 100 sit-ups, and 100 squats.',
+      timeLimit: 24,
+      requiresProof: true,
+      proofType: 'video',
+      status: 'available',
+      rewards: {
+        experience: 50,
+        currency: 0,
+        statPoints: 0
+      },
+      penalty: {
+        experience: -100,
+        currency: -50,
+        statPoints: 0
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
   ],
-  publicCustomQuests: []
+  dailyQuests: loadFromStorage('dailyQuests', []),
+  activeQuests: loadFromStorage('activeQuests', []),
+  completedQuests: loadFromStorage('completedQuests', []),
+  customQuests: loadFromStorage('customQuests', []),
+  publicCustomQuests: loadFromStorage('publicCustomQuests', [])
 };
 
 // Mock quest service
@@ -126,37 +188,65 @@ const mockQuestService = {
   getActiveQuests: async () => {
     await delay();
     
-    console.log('Getting active quests, current count:', mockQuestDB.activeQuests.length);
-    console.log('Active quests:', mockQuestDB.activeQuests);
+    console.log('Getting active quests, current count:', mockQuestDB.activeQuests?.length || 0);
     
-    // If there are no active quests, add a sample one for testing
-    if (!mockQuestDB.activeQuests || mockQuestDB.activeQuests.length === 0) {
-      console.log('No active quests found, adding a sample one');
-      
-      // Add a sample active quest
-      const sampleActiveQuest = {
-        _id: 'active-sample-1',
-        title: 'Sample Active Quest',
-        description: 'This is a sample active quest to demonstrate the feature',
-        type: 'daily',
-        difficulty: 'medium',
-        category: 'fitness',
-        requirements: 'Complete the sample task',
-        timeLimit: 24,
-        requiresProof: false,
-        status: 'active',
-        progress: 0,
-        acceptedAt: new Date().toISOString(),
-        rewards: {
-          experience: 100,
-          currency: 50,
-          statPoints: 0
-        }
-      };
-      
-      mockQuestDB.activeQuests.push(sampleActiveQuest);
+    // Initialize activeQuests if it doesn't exist
+    if (!mockQuestDB.activeQuests) {
+      mockQuestDB.activeQuests = [];
     }
     
+    // If there are no active quests, add the sample ones for testing
+    if (mockQuestDB.activeQuests.length === 0) {
+      console.log('No active quests found, adding sample ones');
+      
+      // Add sample active quests
+      mockQuestDB.activeQuests = [
+        {
+          _id: 'active-sample-1',
+          title: 'Complete a Workout',
+          description: 'Complete a 30-minute workout to improve your fitness.',
+          type: 'daily',
+          difficulty: 'medium',
+          category: 'fitness',
+          requirements: 'Complete a 30-minute workout of your choice.',
+          timeLimit: 24,
+          requiresProof: false,
+          status: 'active',
+          progress: 0,
+          acceptedAt: new Date().toISOString(),
+          rewards: {
+            experience: 100,
+            currency: 50,
+            statPoints: 0
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          _id: 'active-sample-2',
+          title: 'Study Session',
+          description: 'Complete a focused study session to improve your knowledge.',
+          type: 'daily',
+          difficulty: 'easy',
+          category: 'education',
+          requirements: 'Study for at least 1 hour without distractions.',
+          timeLimit: 24,
+          requiresProof: false,
+          status: 'active',
+          progress: 50,
+          acceptedAt: new Date().toISOString(),
+          rewards: {
+            experience: 80,
+            currency: 30,
+            statPoints: 0
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+    }
+    
+    console.log('Returning active quests:', mockQuestDB.activeQuests);
     return mockQuestDB.activeQuests;
   },
   
@@ -289,99 +379,305 @@ const mockQuestService = {
       throw new Error('Active quest not found');
     }
     
-    // Create a deep copy of the quest to avoid read-only issues
-    const quest = JSON.parse(JSON.stringify(mockQuestDB.activeQuests[questIndex]));
-    
     // Update quest status
-    quest.status = 'completed';
-    quest.completedAt = new Date().toISOString();
-    quest.completionNotes = completionNotes;
+    mockQuestDB.activeQuests[questIndex].status = 'completed';
+    mockQuestDB.activeQuests[questIndex].completedAt = new Date().toISOString();
+    mockQuestDB.activeQuests[questIndex].completionNotes = completionNotes;
     
-    // Add to completed quests
-    mockQuestDB.completedQuests.push(quest);
+    // Move to completed quests
+    const completedQuest = mockQuestDB.activeQuests.splice(questIndex, 1)[0];
+    mockQuestDB.completedQuests.push(completedQuest);
     
-    // Remove from active quests
-    mockQuestDB.activeQuests.splice(questIndex, 1);
-    
-    // Calculate rewards
-    const rewards = {
-      experience: quest.rewards?.experience || 100,
-      currency: quest.rewards?.currency || 50,
-      statPoints: quest.rewards?.statPoints || 0
-    };
-    
-    // In a real app, this would update the user's stats
-    console.log('Quest completed! Rewards:', rewards);
+    console.log('Quest completed:', completedQuest);
+    console.log('Active quests count:', mockQuestDB.activeQuests.length);
+    console.log('Active quests:', mockQuestDB.activeQuests);
+    console.log('Completed quests count:', mockQuestDB.completedQuests.length);
+    console.log('Completed quests:', mockQuestDB.completedQuests);
     
     return {
       success: true,
-      message: 'Quest completed successfully',
-      quest,
-      rewards
+      message: 'Quest completed',
+      quest: completedQuest
     };
   },
   
-  // Update quest progress
-  updateQuestProgress: async (questId, progress) => {
+  // Create a custom quest
+  createCustomQuest: async (questData) => {
     await delay();
     
-    console.log('Updating progress for quest:', questId, 'Progress:', progress);
+    console.log('Creating custom quest:', questData);
     
-    // Find the quest in active quests
-    const questIndex = mockQuestDB.activeQuests.findIndex(q => q._id === questId);
-    
-    if (questIndex === -1) {
-      throw new Error('Active quest not found');
+    // Generate a unique ID if not provided
+    if (!questData._id) {
+      questData._id = `custom-${uuidv4()}`;
     }
     
-    // Update progress
-    mockQuestDB.activeQuests[questIndex].progress = progress;
+    // Add timestamps
+    questData.createdAt = new Date().toISOString();
+    questData.updatedAt = new Date().toISOString();
     
-    return {
-      success: true,
-      message: 'Progress updated successfully',
-      quest: mockQuestDB.activeQuests[questIndex]
-    };
+    // Set default status
+    questData.status = 'available';
+    
+    // Ensure type is set
+    questData.type = questData.type || 'custom';
+    
+    // Load existing custom quests from localStorage
+    const existingQuests = loadFromStorage('customQuests', []);
+    
+    // Add to custom quests
+    const updatedQuests = [...existingQuests, questData];
+    mockQuestDB.customQuests = updatedQuests;
+    
+    // Save to localStorage
+    saveToStorage('customQuests', updatedQuests);
+    
+    // Also save to questState for redundancy
+    const questState = loadFromStorage('questState', {});
+    if (questState) {
+      questState.customQuests = updatedQuests;
+      questState.lastUpdated = new Date().toISOString();
+      saveToStorage('questState', questState);
+    }
+    
+    console.log('Custom quest created and saved:', questData);
+    console.log('Updated custom quests:', updatedQuests);
+    
+    return questData;
   },
   
-  // Abandon a quest
-  abandonQuest: async (questId) => {
+  // Get custom quests
+  getCustomQuests: async () => {
     await delay();
     
-    // Find the quest in active quests
-    const questIndex = mockQuestDB.activeQuests.findIndex(quest => quest._id === questId);
+    console.log('Getting custom quests');
     
-    if (questIndex === -1) {
-      throw new Error('Active quest not found');
+    // First try to get from questState (for consistency with Redux)
+    const questState = loadFromStorage('questState', null);
+    if (questState && questState.customQuests && questState.customQuests.length > 0) {
+      console.log('Found custom quests in questState:', questState.customQuests);
+      mockQuestDB.customQuests = questState.customQuests;
+      return questState.customQuests;
     }
     
-    const quest = { ...mockQuestDB.activeQuests[questIndex] };
-    
-    // Update quest status
-    quest.status = 'abandoned';
-    quest.abandonedAt = new Date().toISOString();
-    
-    // Remove from active quests
-    mockQuestDB.activeQuests.splice(questIndex, 1);
-    
-    // Find in available quests and make available again
-    const availableIndex = mockQuestDB.quests.findIndex(q => q._id === questId);
-    if (availableIndex !== -1) {
-      mockQuestDB.quests[availableIndex].status = 'available';
+    // Then try to get from customQuests directly
+    const storedCustomQuests = loadFromStorage('customQuests', null);
+    if (storedCustomQuests && storedCustomQuests.length > 0) {
+      console.log('Found custom quests in localStorage:', storedCustomQuests);
+      mockQuestDB.customQuests = storedCustomQuests;
+      
+      // Also update questState for consistency
+      if (questState) {
+        questState.customQuests = storedCustomQuests;
+        questState.lastUpdated = new Date().toISOString();
+        saveToStorage('questState', questState);
+      }
+      
+      return storedCustomQuests;
     }
     
-    return {
-      success: true,
-      message: 'Quest abandoned successfully'
-    };
+    // If no custom quests exist, create some sample ones
+    if (!mockQuestDB.customQuests || mockQuestDB.customQuests.length === 0) {
+      const sampleQuests = [
+        {
+          _id: 'custom-1',
+          title: 'Learn a New Programming Language',
+          description: 'Learn the basics of a new programming language of your choice.',
+          type: 'custom',
+          difficulty: 'medium',
+          category: 'education',
+          requirements: {
+            level: 1,
+            rank: 'F'
+          },
+          timeEstimate: '2 weeks',
+          requiresProof: true,
+          proofType: 'code',
+          status: 'available',
+          rewards: {
+            experience: 200,
+            currency: 100,
+            statPoints: 1
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          _id: 'custom-2',
+          title: 'Improve Physical Fitness',
+          description: 'Work on improving your physical fitness through regular exercise.',
+          type: 'custom',
+          difficulty: 'hard',
+          category: 'fitness',
+          requirements: {
+            level: 2,
+            rank: 'E'
+          },
+          timeEstimate: '2 weeks',
+          requiresProof: true,
+          proofType: 'image',
+          status: 'available',
+          rewards: {
+            experience: 250,
+            currency: 120,
+            statPoints: 2
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      mockQuestDB.customQuests = sampleQuests;
+      
+      // Save to localStorage
+      saveToStorage('customQuests', sampleQuests);
+      
+      // Also update questState for consistency
+      if (questState) {
+        questState.customQuests = sampleQuests;
+        questState.lastUpdated = new Date().toISOString();
+        saveToStorage('questState', questState);
+      }
+    }
+    
+    console.log('Returning custom quests:', mockQuestDB.customQuests);
+    return mockQuestDB.customQuests;
+  },
+  
+  // Get public custom quests
+  getPublicCustomQuests: async () => {
+    await delay();
+    
+    console.log('Getting public custom quests');
+    
+    // Initialize public custom quests if it doesn't exist
+    if (!mockQuestDB.publicCustomQuests) {
+      mockQuestDB.publicCustomQuests = [
+        {
+          _id: 'public-custom-1',
+          title: 'Community Fitness Challenge',
+          description: 'Join the community fitness challenge to improve your health and earn rewards.',
+          type: 'custom',
+          difficulty: 'medium',
+          category: 'fitness',
+          requirements: 'Complete 30 minutes of exercise for 5 consecutive days.',
+          timeLimit: 120, // 5 days
+          requiresProof: true,
+          proofType: 'image',
+          status: 'available',
+          isPublic: true,
+          createdBy: {
+            _id: 'user-2',
+            username: 'FitnessGuru'
+          },
+          rewards: {
+            experience: 250,
+            currency: 100,
+            statPoints: 1
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          _id: 'public-custom-2',
+          title: 'Coding Challenge',
+          description: 'Complete a coding challenge to improve your programming skills.',
+          type: 'custom',
+          difficulty: 'hard',
+          category: 'learning',
+          requirements: 'Build a small project using a programming language of your choice.',
+          timeLimit: 168, // 1 week
+          requiresProof: true,
+          proofType: 'image',
+          status: 'available',
+          isPublic: true,
+          createdBy: {
+            _id: 'user-3',
+            username: 'CodeMaster'
+          },
+          rewards: {
+            experience: 350,
+            currency: 150,
+            statPoints: 2
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+    }
+    
+    console.log('Public custom quests:', mockQuestDB.publicCustomQuests);
+    return mockQuestDB.publicCustomQuests;
   },
   
   // Get daily quests
   getDailyQuests: async () => {
     await delay();
     
+    console.log('Getting daily quests');
+    
+    // Filter daily quests from the main quests array
     const dailyQuests = mockQuestDB.quests.filter(quest => quest.type === 'daily');
     
+    // If no daily quests found, create sample ones
+    if (!dailyQuests || dailyQuests.length === 0) {
+      const sampleDailyQuests = [
+        {
+          _id: 'daily-sample-1',
+          title: 'Daily Exercise',
+          description: 'Complete a 30-minute workout to stay in shape.',
+          type: 'daily',
+          difficulty: 'medium',
+          category: 'fitness',
+          requirements: 'Complete at least 30 minutes of exercise.',
+          timeLimit: 24,
+          requiresProof: true,
+          proofType: 'image',
+          status: 'available',
+          rewards: {
+            experience: 100,
+            currency: 50,
+            statPoints: 0
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          _id: 'daily-sample-2',
+          title: 'Study Session',
+          description: 'Study for at least 1 hour to improve your knowledge.',
+          type: 'daily',
+          difficulty: 'easy',
+          category: 'education',
+          requirements: 'Complete at least 1 hour of studying.',
+          timeLimit: 24,
+          requiresProof: false,
+          status: 'available',
+          rewards: {
+            experience: 80,
+            currency: 30,
+            statPoints: 0
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      // Add to the quests array
+      mockQuestDB.quests.push(...sampleDailyQuests);
+      
+      console.log('Created sample daily quests:', sampleDailyQuests);
+      
+      // Return with refresh time information
+      return {
+        quests: sampleDailyQuests,
+        refreshTime: new Date(new Date().setHours(24, 0, 0, 0)).toISOString() // Next midnight
+      };
+    }
+    
+    console.log('Daily quests:', dailyQuests);
+    
+    // Return with refresh time information
     return {
       quests: dailyQuests,
       refreshTime: new Date(new Date().setHours(24, 0, 0, 0)).toISOString() // Next midnight
@@ -392,134 +688,113 @@ const mockQuestService = {
   getEmergencyQuests: async () => {
     await delay();
     
-    return mockQuestDB.quests.filter(quest => quest.type === 'emergency');
+    console.log('Getting emergency quests');
+    
+    // Filter emergency quests from the main quests array
+    const emergencyQuests = mockQuestDB.quests.filter(quest => quest.type === 'emergency');
+    
+    // If no emergency quests found, create sample ones
+    if (!emergencyQuests || emergencyQuests.length === 0) {
+      const sampleEmergencyQuests = [
+        {
+          _id: 'emergency-sample-1',
+          title: 'System Crash Recovery',
+          description: 'The main system has crashed! Recover it immediately to prevent data loss.',
+          type: 'emergency',
+          difficulty: 'hard',
+          category: 'work',
+          requirements: 'Restart the system and recover any lost data.',
+          timeLimit: 2,
+          requiresProof: true,
+          proofType: 'screenshot',
+          status: 'available',
+          rewards: {
+            experience: 300,
+            currency: 200,
+            statPoints: 1
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          _id: 'emergency-sample-2',
+          title: 'Urgent Deadline',
+          description: 'A critical deadline has been moved up! Complete your work immediately.',
+          type: 'emergency',
+          difficulty: 'very-hard',
+          category: 'work',
+          requirements: 'Complete the urgent task before the new deadline.',
+          timeLimit: 4,
+          requiresProof: true,
+          proofType: 'screenshot',
+          status: 'available',
+          rewards: {
+            experience: 400,
+            currency: 300,
+            statPoints: 2
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      // Add to the quests array
+      mockQuestDB.quests.push(...sampleEmergencyQuests);
+      
+      console.log('Created sample emergency quests:', sampleEmergencyQuests);
+      return sampleEmergencyQuests;
+    }
+    
+    console.log('Emergency quests:', emergencyQuests);
+    return emergencyQuests;
   },
   
   // Get punishment quests
   getPunishmentQuests: async () => {
     await delay();
     
-    return mockQuestDB.quests.filter(quest => quest.type === 'punishment');
-  },
-  
-  // Create a custom quest
-  createCustomQuest: async (questData) => {
-    await delay();
+    console.log('Getting punishment quests');
     
-    // Create a new custom quest with default values for missing fields
-    const newQuest = {
-      _id: `custom-${uuidv4()}`,
-      type: 'custom',
-      title: questData.title || 'Unnamed Quest',
-      description: questData.description || '',
-      difficulty: questData.difficulty || 'medium',
-      category: questData.category || 'other',
-      requirements: questData.requirements || '',
-      timeLimit: questData.timeLimit || 24,
-      requiresProof: questData.requiresProof || false,
-      proofType: questData.proofType || 'none',
-      verificationMethod: questData.verificationMethod || 'none',
-      rewards: {
-        experience: questData.rewards?.experience || 100,
-        currency: questData.rewards?.currency || 50,
-        statPoints: questData.rewards?.statPoints || 0
-      },
-      createdBy: {
-        _id: 'user-1', // In a real app, this would be the current user's ID
-        username: 'CurrentUser' // In a real app, this would be the current user's username
-      },
-      createdAt: new Date().toISOString(),
-      status: 'available',
-      progress: 0
-    };
+    // Filter punishment quests from the main quests array
+    const punishmentQuests = mockQuestDB.quests.filter(quest => quest.type === 'punishment');
     
-    // Add to user's custom quests
-    mockQuestDB.customQuests.push(newQuest);
-    
-    return newQuest;
-  },
-  
-  // Get custom quests
-  getCustomQuests: async () => {
-    await delay();
-    
-    return mockQuestDB.customQuests;
-  },
-  
-  // Get public custom quests
-  getPublicCustomQuests: async () => {
-    await delay();
-    
-    console.log('Getting public custom quests');
-    
-    // Create some sample public custom quests if none exist
-    if (!mockQuestDB.publicCustomQuests || mockQuestDB.publicCustomQuests.length === 0) {
-      mockQuestDB.publicCustomQuests = [
-        {
-          _id: 'public-custom-1',
-          title: 'Community Fitness Challenge',
-          description: 'Complete a 30-minute workout session and share your progress',
-          difficulty: 'medium',
-          category: 'fitness',
-          requirements: 'Record a video of your workout session',
-          timeLimit: 24,
-          requiresProof: true,
-          proofType: 'video',
-          isPublic: true,
-          createdBy: 'community',
-          createdAt: new Date().toISOString(),
-          status: 'available',
-          rewards: {
-            experience: 150,
-            currency: 100,
-            statPoints: 1
-          }
+    // If no punishment quests found, create a sample one
+    if (!punishmentQuests || punishmentQuests.length === 0) {
+      const samplePunishmentQuest = {
+        _id: 'punishment-sample-1',
+        title: 'Intensive Training',
+        description: 'You failed to complete your tasks. Complete intensive training as punishment.',
+        type: 'punishment',
+        difficulty: 'hard',
+        category: 'fitness',
+        requirements: 'Complete 150 push-ups, 150 sit-ups, and 150 squats.',
+        timeLimit: 24,
+        requiresProof: true,
+        proofType: 'video',
+        status: 'available',
+        rewards: {
+          experience: 50,
+          currency: 0,
+          statPoints: 0
         },
-        {
-          _id: 'public-custom-2',
-          title: 'Reading Challenge',
-          description: 'Read a book chapter and write a short summary',
-          difficulty: 'easy',
-          category: 'study',
-          requirements: 'Submit a summary of at least 200 words',
-          timeLimit: 48,
-          requiresProof: true,
-          proofType: 'text',
-          isPublic: true,
-          createdBy: 'community',
-          createdAt: new Date().toISOString(),
-          status: 'available',
-          rewards: {
-            experience: 100,
-            currency: 50,
-            statPoints: 0
-          }
+        penalty: {
+          experience: -100,
+          currency: -50,
+          statPoints: 0
         },
-        {
-          _id: 'public-custom-3',
-          title: 'Meditation Marathon',
-          description: 'Complete a 20-minute meditation session for mental clarity',
-          difficulty: 'easy',
-          category: 'wellness',
-          requirements: 'Use a meditation app and screenshot your session',
-          timeLimit: 24,
-          requiresProof: true,
-          proofType: 'image',
-          isPublic: true,
-          createdBy: 'community',
-          createdAt: new Date().toISOString(),
-          status: 'available',
-          rewards: {
-            experience: 80,
-            currency: 40,
-            statPoints: 0
-          }
-        }
-      ];
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Add to the quests array
+      mockQuestDB.quests.push(samplePunishmentQuest);
+      
+      console.log('Created sample punishment quest:', samplePunishmentQuest);
+      return [samplePunishmentQuest];
     }
     
-    console.log('Public custom quests:', mockQuestDB.publicCustomQuests);
-    return mockQuestDB.publicCustomQuests;
+    console.log('Punishment quests:', punishmentQuests);
+    return punishmentQuests;
   },
   
   // Submit verification for a quest

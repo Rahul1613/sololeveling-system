@@ -5,7 +5,6 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import UploadIcon from '@mui/icons-material/Upload';
 import VideoVerification from '../verification/VideoVerification';
-import mockQuestService from '../../api/mockQuestService';
 import { updateExperience } from '../../redux/slices/userSlice';
 import SystemPanel from '../common/SystemPanel';
 import SystemButton from '../common/SystemButton';

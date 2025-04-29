@@ -811,7 +811,9 @@ const mockAuthService = {
   user: {
     // Generate mock users for rankings
     generateMockUsers: (count = 50) => {
-      const ranks = ['S', 'A', 'B', 'C', 'D', 'E'];
+      // Define ranks for potential future use in random rank generation
+      // Currently not used directly but kept for reference
+      // const ranks = ['S', 'A', 'B', 'C', 'D', 'E'];
       const mockUsers = [];
       
       // Add all real users from the database to the rankings

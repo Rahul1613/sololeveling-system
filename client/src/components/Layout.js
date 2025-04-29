@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { styled, useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   Box,
@@ -51,7 +50,7 @@ const navItems = [
 ];
 
 const Layout = ({ children }) => {
-  const theme = useTheme();
+  // Theme is used for responsive design and styling
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
@@ -60,7 +59,6 @@ const Layout = ({ children }) => {
   const isDesktop = useMediaQuery('(min-width:900px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
-  const [bottomNavValue, setBottomNavValue] = useState(0);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
 

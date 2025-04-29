@@ -28,7 +28,7 @@ import DailyQuestDirections from '../components/quests/DailyQuestDirections';
 // Import CSS is handled in the DailyQuestDirections component
 
 const ActiveQuests = () => {
-  const { token, user } = useSelector(state => state.auth);
+  const { token } = useSelector(state => state.auth);
   const [activeQuests, setActiveQuests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -96,10 +96,10 @@ const ActiveQuests = () => {
     };
     
     return (
-      <HolographicCard key={quest._id} className="mb-4">
+      <HolographicCard key={quest._id} className="quest-card">
         <Box p={3}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h5" component="h2" fontWeight="bold" color="primary">
+            <Typography variant="h5" component="h2" className="quest-title">
               {quest.title}
             </Typography>
             
@@ -109,17 +109,19 @@ const ActiveQuests = () => {
                 color={getDifficultyColor(quest.difficulty)}
                 size="small"
                 sx={{ mr: 1 }}
+                className="reward-chip"
               />
               
               <Chip 
                 label={`${getCategoryIcon(quest.category)} ${(quest.category || 'other').toUpperCase()}`}
                 color="secondary"
                 size="small"
+                className="reward-chip"
               />
             </Box>
           </Box>
           
-          <Typography variant="body1" color="text.secondary" mb={2}>
+          <Typography variant="body1" className="quest-description">
             {quest.description || 'No description provided'}
           </Typography>
           
@@ -127,15 +129,11 @@ const ActiveQuests = () => {
           <Box mb={2}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="body2" fontWeight="bold">
-                Progress: {quest.progress || 0}%
+                Progress
               </Typography>
-              
-              <Box display="flex" alignItems="center">
-                <AccessTime sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                <Typography variant="body2" color="text.secondary">
-                  {quest.timeLimit || 24} hours
-                </Typography>
-              </Box>
+              <Typography variant="body2">
+                {quest.progress || 0}%
+              </Typography>
             </Box>
             <LinearProgress 
               variant="determinate" 
@@ -146,36 +144,65 @@ const ActiveQuests = () => {
           
           <Divider sx={{ my: 2 }} />
           
-          {/* Rewards Preview */}
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box>
-              <Typography variant="body2" fontWeight="bold" color="text.primary">
-                Rewards:
-              </Typography>
-              <Box display="flex" gap={2} mt={1}>
-                <Typography variant="body2" color="text.secondary">
-                  XP: {quest.rewards?.experience || 0}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Currency: {quest.rewards?.currency || 0}
+          {/* Quest Info */}
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={6}>
+              <Box className="quest-info">
+                <AccessTime className="quest-info-icon" />
+                <Typography variant="body2">
+                  {quest.timeRemaining || 'No time limit'}
                 </Typography>
               </Box>
-            </Box>
-            
-            {quest.requiresProof && (
+            </Grid>
+            <Grid item xs={6}>
+              <Box className="quest-info">
+                <Flag className="quest-info-icon" />
+                <Typography variant="body2">
+                  {quest.type?.toUpperCase() || 'CUSTOM'}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+          
+          {/* Rewards */}
+          <Box className="quest-rewards">
+            <Typography variant="subtitle2" fontWeight="bold" mb={1}>
+              Rewards:
+            </Typography>
+            <Box display="flex" flexWrap="wrap">
               <Chip 
-                icon={<CheckCircle fontSize="small" />}
-                label={`Requires ${quest.proofType || 'verification'}`}
-                variant="outlined"
+                label={`${quest.rewards?.experience || 0} XP`}
                 size="small"
+                color="primary"
+                variant="outlined"
+                sx={{ mr: 1, mb: 1 }}
+                className="reward-chip"
               />
-            )}
+              <Chip 
+                label={`${quest.rewards?.currency || 0} Gold`}
+                size="small"
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 1, mb: 1 }}
+                className="reward-chip"
+              />
+              {quest.rewards?.statPoints > 0 && (
+                <Chip 
+                  label={`${quest.rewards.statPoints} Stat Points`}
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                  sx={{ mr: 1, mb: 1 }}
+                  className="reward-chip"
+                />
+              )}
+            </Box>
           </Box>
           
-          {/* Action Buttons */}
-          <Box display="flex" justifyContent="flex-end" mt={2}>
-            <Button
-              variant="contained"
+          {/* Actions */}
+          <Box display="flex" justifyContent="space-between" mt={2}>
+            <Button 
+              variant="contained" 
               color="primary"
               startIcon={<PlayArrow />}
               onClick={() => {
@@ -185,6 +212,14 @@ const ActiveQuests = () => {
             >
               Continue Quest
             </Button>
+            
+            <Button 
+              variant="outlined" 
+              color="error"
+              startIcon={<Cancel />}
+            >
+              Abandon
+            </Button>
           </Box>
         </Box>
       </HolographicCard>
@@ -193,122 +228,134 @@ const ActiveQuests = () => {
   
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Typography variant="h4" component="h1" fontWeight="bold">
-          Active Quests
-        </Typography>
-        
-        <Button 
-          variant="contained" 
-          color="primary"
-          onClick={fetchActiveQuests}
-          disabled={loading}
-        >
-          Refresh Quests
-        </Button>
-      </Box>
-      
-      {/* Error and Success Messages */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-      
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          {success}
-        </Alert>
-      )}
-      
-      {/* Loading Indicator */}
-      {loading && (
-        <Box display="flex" justifyContent="center" my={4}>
-          <CircularProgress />
-        </Box>
-      )}
-      
-      {/* No Active Quests Message */}
-      {!loading && activeQuests.length === 0 && (
-        <Paper elevation={2} sx={{ p: 4, textAlign: 'center', bgcolor: 'background.paper' }}>
-          <Flag sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h5" gutterBottom>
-            No Active Quests
+      <Box className="container-section">
+        <Box className="flex-between" sx={{ mb: 3 }}>
+          <Typography variant="h4" component="h1" className="page-title" sx={{ mb: 0 }}>
+            Active Quests
           </Typography>
-          <Typography variant="body1" color="text.secondary" mb={3}>
-            You don't have any active quests. Visit the Quest Board or Custom Quests to accept new quests.
-          </Typography>
+          
           <Button 
             variant="contained" 
             color="primary"
-            href="/quests"
+            onClick={fetchActiveQuests}
+            disabled={loading}
           >
-            Go to Quest Board
+            Refresh Quests
           </Button>
-        </Paper>
-      )}
-      
-      {/* Daily Quest Directions */}
-      {!loading && activeQuests.length > 0 && (
-        <Box mb={4}>
-          <Typography variant="h5" component="h2" fontWeight="bold" mb={2}>
-            Daily Quest
-          </Typography>
-          
-          {/* Find the first daily quest */}
-          {activeQuests.find(quest => quest.type === 'daily') ? (
-            <DailyQuestDirections 
-              quest={{
-                title: activeQuests.find(quest => quest.type === 'daily').title,
-                goals: [
-                  { name: 'PUSH-UPS', target: 100, current: activeQuests.find(quest => quest.type === 'daily').progress || 0 },
-                  { name: 'CURL-UPS', target: 100, current: activeQuests.find(quest => quest.type === 'daily').progress || 0 },
-                  { name: 'SQUATS', target: 100, current: activeQuests.find(quest => quest.type === 'daily').progress || 0 },
-                  { name: 'RUNNING', target: 10, current: activeQuests.find(quest => quest.type === 'daily').progress / 10 || 0, unit: 'km' }
-                ],
-                warning: 'FAILING TO COMPLETE THIS DAILY QUEST WILL BRING A PUNISHMENT ASSOCIATED WITH THIS QUEST.'
-              }}
-            />
-          ) : (
-            <Typography variant="body1" color="text.secondary">
-              No daily quests active. Visit the Quest Board to accept a daily quest.
-            </Typography>
-          )}
         </Box>
-      )}
-      
-      {/* Active Quests List */}
-      {!loading && activeQuests.length > 0 && (
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography variant="h5" component="h2" fontWeight="bold" mb={2}>
+        
+        <Divider sx={{ mb: 3 }} />
+        
+        {/* Error and Success Messages */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {success && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {success}
+          </Alert>
+        )}
+        
+        {/* Loading Indicator */}
+        {loading && (
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress />
+          </Box>
+        )}
+        
+        {/* No Active Quests Message */}
+        {!loading && activeQuests.length === 0 && (
+          <Paper elevation={2} sx={{ p: 4, textAlign: 'center', bgcolor: 'rgba(10, 10, 15, 0.7)', borderRadius: 2, border: '1px solid rgba(66, 135, 245, 0.5)', boxShadow: '0 0 15px rgba(66, 135, 245, 0.3)' }}>
+            <Flag sx={{ fontSize: 60, color: '#4287f5', mb: 2, filter: 'drop-shadow(0 0 10px rgba(66, 135, 245, 0.7))' }} />
+            <Typography variant="h5" gutterBottom sx={{ color: '#ffffff', textShadow: '0 0 10px rgba(66, 135, 245, 0.7)' }}>
+              No Active Quests
+            </Typography>
+            <Typography variant="body1" color="#e0e0e0" mb={3}>
+              You don't have any active quests. Visit the Quest Board or Custom Quests to accept new quests.
+            </Typography>
+            <Button 
+              variant="contained" 
+              color="primary"
+              href="/quests"
+            >
+              Go to Quest Board
+            </Button>
+          </Paper>
+        )}
+        
+        {/* Daily Quest Directions */}
+        {!loading && activeQuests.length > 0 && (
+          <Box mb={4} className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+            <Typography variant="h5" component="h2" className="section-title">
+              Daily Quest
+            </Typography>
+            
+            {/* Find the first daily quest */}
+            {activeQuests.find(quest => quest.type === 'daily') ? (
+              <DailyQuestDirections 
+                quest={{
+                  title: activeQuests.find(quest => quest.type === 'daily').title,
+                  goals: [
+                    { name: 'PUSH-UPS', target: 100, current: activeQuests.find(quest => quest.type === 'daily').progress || 0 },
+                    { name: 'CURL-UPS', target: 100, current: activeQuests.find(quest => quest.type === 'daily').progress || 0 },
+                    { name: 'SQUATS', target: 100, current: activeQuests.find(quest => quest.type === 'daily').progress || 0 },
+                    { name: 'RUNNING', target: 10, current: activeQuests.find(quest => quest.type === 'daily').progress / 10 || 0, unit: 'km' }
+                  ],
+                  warning: 'FAILING TO COMPLETE THIS DAILY QUEST WILL BRING A PUNISHMENT ASSOCIATED WITH THIS QUEST.'
+                }}
+              />
+            ) : (
+              <Typography variant="body1" color="#e0e0e0">
+                No daily quests active. Visit the Quest Board to accept a daily quest.
+              </Typography>
+            )}
+          </Box>
+        )}
+        
+        {/* Active Quests List */}
+        {!loading && activeQuests.length > 0 && (
+          <Box className="container-section" sx={{ p: 3, backgroundColor: 'rgba(10, 10, 15, 0.7)' }}>
+            <Typography variant="h5" component="h2" className="section-title">
               All Active Quests
             </Typography>
-          </Grid>
-          
-          {activeQuests.map(quest => (
-            <Grid item xs={12} key={quest._id}>
-              {renderQuestCard(quest)}
+            
+            <Grid container spacing={3} className="grid-container">
+              {activeQuests.map(quest => (
+                <Grid item xs={12} key={quest._id}>
+                  {renderQuestCard(quest)}
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
-      )}
-      
-      {/* Quest Details Dialog */}
-      <Dialog 
-        open={showQuestDetails} 
-        onClose={() => setShowQuestDetails(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        {selectedQuest && (
-          <QuestDetails 
-            quest={selectedQuest}
-            onComplete={handleQuestCompleted}
-            onClose={() => setShowQuestDetails(false)}
-          />
+          </Box>
         )}
-      </Dialog>
+        
+        {/* Quest Details Dialog */}
+        <Dialog 
+          open={showQuestDetails} 
+          onClose={() => setShowQuestDetails(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              backgroundColor: 'rgba(10, 10, 15, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(66, 135, 245, 0.8)',
+              boxShadow: '0 0 20px rgba(66, 135, 245, 0.5)'
+            }
+          }}
+        >
+          {selectedQuest && (
+            <QuestDetails 
+              quest={selectedQuest}
+              onComplete={handleQuestCompleted}
+              onClose={() => setShowQuestDetails(false)}
+            />
+          )}
+        </Dialog>
+      </Box>
     </Container>
   );
 };

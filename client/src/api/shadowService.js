@@ -232,8 +232,37 @@ const shadowService = {
    */
   extractShadow: async (extractionData) => {
     try {
+      console.log('ShadowService: Extracting shadow with data:', extractionData);
+      
+      // Make sure we have valid extraction data
+      if (!extractionData || typeof extractionData !== 'object') {
+        console.error('Invalid extraction data:', extractionData);
+        throw new Error('Invalid extraction data');
+      }
+      
       if (shouldUseMockService()) {
-        return await mockShadowService.extractShadow(extractionData.targetId);
+        // Generate a mock shadow based on the extraction data
+        const mockShadow = {
+          _id: `shadow_${Date.now()}`,
+          name: extractionData.name || 'Unnamed Shadow',
+          type: extractionData.type || 'soldier',
+          level: extractionData.level || 1,
+          power: extractionData.power || 10,
+          rank: extractionData.rank || 'E',
+          stats: extractionData.stats || {
+            strength: 10,
+            intelligence: 10,
+            agility: 10,
+            endurance: 10
+          },
+          abilities: extractionData.abilities || [],
+          source: 'extraction',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        console.log('ShadowService: Created mock shadow:', mockShadow);
+        return mockShadow;
       }
       
       const response = await api.post('/api/shadows/extract', extractionData);

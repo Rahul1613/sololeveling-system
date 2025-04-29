@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom
 import { useDispatch, useSelector } from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Alert, Button } from '@mui/material';
+import { Box, Container, Snackbar, Alert, CircularProgress, Button } from '@mui/material';
+import { getCurrentUser } from './redux/slices/authSlice';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -16,6 +17,9 @@ import ActiveQuests from './pages/ActiveQuests';
 import Inventory from './pages/Inventory';
 import ShadowArmy from './pages/ShadowArmy';
 import Marketplace from './pages/Marketplace';
+import MarketplaceTest from './pages/MarketplaceTest';
+import MarketplaceImageTest from './pages/MarketplaceImageTest';
+import MarketplaceSimple from './pages/MarketplaceSimple';
 import Skills from './pages/Skills';
 import Titles from './pages/Titles';
 import Profile from './pages/Profile';
@@ -31,28 +35,85 @@ import NetworkErrorBoundary from './components/common/NetworkErrorBoundary';
 import ErrorHandler from './components/common/ErrorHandler';
 import IntroAnimation from './components/IntroAnimation';
 
-// Redux
-import { getCurrentUser } from './redux/slices/authSlice';
-
 // Utils
 import socketService from './utils/socketService';
 import networkManager from './utils/networkManager';
 import { initErrorFixes } from './utils/errorFixer';
 import { applyAxiosMergePatch } from './utils/axiosMergePatch';
 import { fixAxiosSliceError } from './utils/axiosSliceFix';
+import databaseService from './api/databaseService';
 
 // Styles
 import './App.css';
+import './styles/GlobalTheme.css'; // Import the global theme override
 
 function App() {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
+  const { isLoading } = useSelector(state => state.user);
   const [networkError, setNetworkError] = useState(null);
   const [showNetworkAlert, setShowNetworkAlert] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
   const [audioContextInitialized, setAudioContextInitialized] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
+
+  // Initialize database service and check for authentication on app load
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        console.log('App: Initializing database service...');
+        // Initialize database service
+        databaseService.init();
+        
+        // Check if user is authenticated
+        if (databaseService.isAuthenticated()) {
+          console.log('App: User is authenticated, restoring session...');
+          await dispatch(getCurrentUser()).unwrap();
+        }
+        
+        // Apply error fixes
+        initErrorFixes();
+        applyAxiosMergePatch();
+        fixAxiosSliceError();
+        
+        // Initialize network manager
+        networkManager.init({
+          onNetworkError: (event) => {
+            // If there's a critical network error, show it at the app level
+            if (event && event.type === 'error' && event.critical) {
+              setNetworkError({
+                message: event.error,
+                userMessage: 'Network connection lost. Attempting to reconnect...'
+              });
+              setShowNetworkAlert(true);
+            }
+          },
+          onNetworkRestore: (event) => {
+            // If network is restored, hide the alert
+            if (event && event.type === 'restore') {
+              setShowNetworkAlert(false);
+            }
+          }
+        });
+        
+        // Initialize socket service if user is logged in
+        if (user) {
+          socketService.init(user._id);
+        }
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('App initialization failed:', error);
+        setNetworkError({
+          message: error?.message || 'Initialization failed',
+          userMessage: 'Failed to initialize app. Please check your server connection and try again.'
+        });
+        setShowNetworkAlert(true);
+      }
+    };
+    initApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Show intro animation only after login, not on every refresh
   useEffect(() => {
@@ -73,10 +134,15 @@ function App() {
   // Initialize audio context for sound effects and animations
   useEffect(() => {
     const initAudioContext = () => {
-      if (!window.audioContext) {
-        window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        setAudioContextInitialized(true);
-        console.log('Audio context initialized');
+      try {
+        if (!window.audioContext) {
+          window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          setAudioContextInitialized(true);
+          console.log('Audio context initialized');
+        }
+      } catch (error) {
+        console.log('Audio context initialization skipped in this browser');
+        // Don't show error, just silently fail
       }
     };
 
@@ -136,35 +202,92 @@ function App() {
   // Theme configuration
   const theme = createTheme({
     palette: {
-      mode: darkMode ? 'dark' : 'light',
+      mode: 'dark',
       primary: {
-        main: '#3f51b5',
+        main: '#4287f5',
       },
       secondary: {
-        main: '#f50057',
+        main: '#ffffff',
       },
       background: {
-        default: darkMode ? '#121212' : '#f5f5f5',
-        paper: darkMode ? '#1e1e1e' : '#ffffff',
+        default: '#000000',
+        paper: '#000000',
       },
+      text: {
+        primary: '#ffffff',
+        secondary: '#e0e0e0',
+      }
     },
     typography: {
       fontFamily: 'Rajdhani, sans-serif',
     },
     components: {
       MuiCssBaseline: {
+        styleOverrides: `
+          body {
+            background-color: #000000;
+            color: #ffffff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+          }
+          ::-webkit-scrollbar {
+            width: 8px;
+            background-color: #1a1a1a;
+          }
+          ::-webkit-scrollbar-thumb {
+            border-radius: 8px;
+            background-color: #4287f5;
+            min-height: 24px;
+            box-shadow: 0 0 6px #4287f5;
+          }
+        `,
+      },
+      MuiButton: {
         styleOverrides: {
-          body: {
-            scrollbarColor: darkMode ? "#6b6b6b #2b2b2b" : "#959595 #f5f5f5",
-            "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
-              backgroundColor: darkMode ? "#2b2b2b" : "#f5f5f5",
-              width: 8,
+          root: {
+            background: 'rgba(0, 0, 0, 0.8)',
+            border: '1px solid rgba(66, 135, 245, 0.5)',
+            boxShadow: '0 0 10px rgba(66, 135, 245, 0.5)',
+            color: '#ffffff',
+            '&:hover': {
+              background: 'rgba(20, 20, 20, 0.9)',
+              boxShadow: '0 0 15px rgba(66, 135, 245, 0.8)',
             },
-            "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
-              borderRadius: 8,
-              backgroundColor: darkMode ? "#6b6b6b" : "#959595",
-              minHeight: 24,
-            },
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backgroundImage: 'none',
+            border: '1px solid rgba(66, 135, 245, 0.5)',
+            boxShadow: '0 0 15px rgba(66, 135, 245, 0.5)',
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            border: '1px solid rgba(66, 135, 245, 0.5)',
+            boxShadow: '0 0 15px rgba(66, 135, 245, 0.5)',
+          },
+        },
+      },
+      MuiTypography: {
+        styleOverrides: {
+          root: {
+            color: '#ffffff',
+            textShadow: '0 0 5px rgba(255, 255, 255, 0.5)',
+          },
+          h1: {
+            textShadow: '0 0 8px rgba(255, 255, 255, 0.7)',
+          },
+          h2: {
+            textShadow: '0 0 8px rgba(255, 255, 255, 0.7)',
+          },
+          h3: {
+            textShadow: '0 0 8px rgba(255, 255, 255, 0.7)',
           },
         },
       },
@@ -178,104 +301,7 @@ function App() {
     localStorage.setItem('darkMode', newDarkMode);
   };
 
-  // Initialize error fixer patch
-  useEffect(() => {
-    console.log('Initializing error fixer patch...');
-    try {
-      // Apply the general error fixes
-      initErrorFixes();
-      console.log('Error fixer patch initialized successfully');
-      
-      // Apply the specific Axios merge patch
-      const axiosPatchResult = applyAxiosMergePatch();
-      console.log('Axios merge patch applied:', axiosPatchResult ? 'Successfully' : 'Failed');
-      
-      // Apply direct fix for Axios slice error
-      const sliceFixResult = fixAxiosSliceError();
-      console.log('Direct Axios slice fix applied:', sliceFixResult ? 'Successfully' : 'Failed');
-    } catch (err) {
-      console.error('Failed to initialize error fixer patch:', err);
-    }
-  }, []);
-
-  // Initialize network manager
-  useEffect(() => {
-    console.log('Initializing network manager...');
-    try {
-      networkManager.init();
-      networkManager.checkServerConnection();
-      console.log('Network manager initialized successfully');
-    } catch (err) {
-      console.error('Failed to initialize network manager:', err);
-    }
-  }, []);
-
-  // Check if user is logged in
-  const checkAuth = async () => {
-    try {
-      if (localStorage.getItem('token')) {
-        await dispatch(getCurrentUser()).unwrap();
-      }
-    } catch (error) {
-      // Only show network errors at the app level
-      if (!error.response || error.code === 'ECONNABORTED') {
-        setNetworkError(error);
-        setShowNetworkAlert(true);
-      }
-      
-      // Clear invalid tokens
-      if (error.message === 'No user logged in' || error.message === 'Invalid token') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    } finally {
-      setIsInitialized(true);
-    }
-  };
-
-  useEffect(() => {
-    checkAuth();
-    // eslint-disable-next-line
-  }, []);
-
-  // Setup network status listener
-  useEffect(() => {
-    const handleNetworkEvent = (event) => {
-      // If there's a critical network error, show it at the app level
-      if (event.type === 'error' && event.critical) {
-        setNetworkError({
-          message: event.error,
-          userMessage: 'Network connection lost. Attempting to reconnect...'
-        });
-        setShowNetworkAlert(true);
-      }
-    };
-    
-    // Add listener to network manager
-    const removeListener = networkManager.addListener(handleNetworkEvent);
-    
-    // Initial connection check
-    networkManager.checkServerConnection();
-    
-    return () => removeListener();
-  }, []);
-
-  // Initialize socket connection if user is logged in
-  useEffect(() => {
-    if (user && user._id) {
-      try {
-        socketService.init(user._id);
-        
-        return () => {
-          socketService.disconnect();
-        };
-      } catch (error) {
-        console.error('Socket connection error:', error);
-      }
-    }
-  }, [user]);
-
-  // Handle network alert close
+  // Handle network alert close - used in the Alert component
   const handleNetworkAlertClose = () => {
     setShowNetworkAlert(false);
   };
@@ -291,7 +317,7 @@ function App() {
     }
   };
   
-  // Show loading state while initializing
+  // Show loading state while initializing or show error if initialization failed
   if (!isInitialized) {
     return (
       <ThemeProvider theme={theme}>
@@ -316,6 +342,15 @@ function App() {
           <div style={{ color: theme.palette.text.secondary, fontSize: '16px' }}>
             Loading...
           </div>
+          {networkError && (
+            <div style={{ color: 'red', marginTop: 20, textAlign: 'center' }}>
+              {networkError.userMessage || 'An error occurred.'}
+              <br />
+              <button onClick={() => window.location.reload()} style={{ marginTop: 10 }}>
+                Retry
+              </button>
+            </div>
+          )}
         </div>
       </ThemeProvider>
     );
@@ -352,7 +387,10 @@ function App() {
               <Route path="active-quests" element={<PrivateRoute><ActiveQuests /></PrivateRoute>} />
               <Route path="inventory" element={<PrivateRoute><Inventory /></PrivateRoute>} />
               <Route path="shadows" element={<PrivateRoute><ShadowArmy /></PrivateRoute>} />
-              <Route path="marketplace" element={<PrivateRoute><Marketplace /></PrivateRoute>} />
+              <Route path="marketplace" element={<PrivateRoute><MarketplaceSimple /></PrivateRoute>} />
+              <Route path="marketplace-test" element={<PrivateRoute><MarketplaceTest /></PrivateRoute>} />
+              <Route path="marketplace-image-test" element={<PrivateRoute><MarketplaceImageTest /></PrivateRoute>} />
+              <Route path="marketplace-original" element={<PrivateRoute><Marketplace /></PrivateRoute>} />
               <Route path="skills" element={<PrivateRoute><Skills /></PrivateRoute>} />
               <Route path="titles" element={<PrivateRoute><Titles /></PrivateRoute>} />
               <Route path="verification" element={<VerificationPage />} />
@@ -365,6 +403,7 @@ function App() {
             <Alert 
               severity="error" 
               variant="filled"
+              onClose={handleNetworkAlertClose}
               sx={{ 
                 position: 'fixed', 
                 top: '10px', 

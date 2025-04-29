@@ -5,15 +5,17 @@ import HolographicCard from './HolographicCard';
 
 // Styled components
 const StatLabel = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+  color: '#e0e0e0',
   fontSize: '0.9rem',
   fontWeight: 600,
+  textShadow: '0 0 3px rgba(255, 255, 255, 0.5)',
 }));
 
 const StatValue = styled(Typography)(({ theme }) => ({
-  color: theme.palette.primary.main,
+  color: '#4287f5',
   fontSize: '1.1rem',
   fontWeight: 700,
+  textShadow: '0 0 5px rgba(66, 135, 245, 0.7)',
 }));
 
 const StyledLinearProgress = styled(LinearProgress)(({ theme, color }) => ({
@@ -22,7 +24,8 @@ const StyledLinearProgress = styled(LinearProgress)(({ theme, color }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.1)',
   '& .MuiLinearProgress-bar': {
     borderRadius: 4,
-    background: color ? color : `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+    background: color ? color : `linear-gradient(90deg, #4287f5 0%, #ffffff 100%)`,
+    boxShadow: '0 0 5px rgba(66, 135, 245, 0.5)',
   },
 }));
 
@@ -49,6 +52,7 @@ const RankBadge = styled(Box)(({ theme, rank, isMobile }) => {
     fontWeight: 700,
     fontSize: isMobile ? '1rem' : '1.2rem',
     boxShadow: `0 0 10px ${rankColors[rank] || theme.palette.primary.main}`,
+    textShadow: '0 0 5px rgba(255, 255, 255, 0.8)',
   };
 });
 
@@ -98,10 +102,10 @@ const StatusWindow = ({ user, expPercentage }) => {
             <RankBadge rank={user.rank || 'E'} isMobile={isMobile}>{user.rank || 'E'}</RankBadge>
           </Grid>
           <Grid item xs>
-            <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 700, color: '#FFFFFF' }}>
+            <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 700, color: '#FFFFFF', textShadow: '0 0 8px rgba(255, 255, 255, 0.7)' }}>
               {user.username || 'Hunter'}
             </Typography>
-            <Typography variant={isMobile ? "body2" : "subtitle1"} sx={{ color: 'text.secondary' }}>
+            <Typography variant={isMobile ? "body2" : "subtitle1"} sx={{ color: '#e0e0e0', textShadow: '0 0 3px rgba(255, 255, 255, 0.5)' }}>
               Level {user.level || 1}
             </Typography>
           </Grid>
@@ -116,14 +120,14 @@ const StatusWindow = ({ user, expPercentage }) => {
           <StyledLinearProgress 
             variant="determinate" 
             value={expPercentage || 0} 
-            color="linear-gradient(90deg, #7B68EE 0%, #4CAF50 100%)"
+            color="linear-gradient(90deg, #4287f5 0%, #ffffff 100%)"
           />
         </Box>
 
         {/* HP and MP bars */}
         <Grid container spacing={isMobile ? 1 : 2} sx={{ mb: isMobile ? 2 : 3 }}>
           <Grid item xs={6}>
-            <Typography variant="body2" sx={{ color: '#fff', mb: 1 }}>
+            <Typography variant="body2" sx={{ color: '#fff', mb: 1, textShadow: '0 0 3px rgba(255, 255, 255, 0.5)' }}>
               HP: {user && user.hp ? `${user.hp.current}/${user.hp.max}` : '0/0'}
             </Typography>
             <LinearProgress
@@ -136,12 +140,13 @@ const StatusWindow = ({ user, expPercentage }) => {
                 backgroundColor: 'rgba(255, 0, 0, 0.2)',
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: '#ff0000',
+                  boxShadow: '0 0 5px rgba(255, 0, 0, 0.7)',
                 },
               }}
             />
           </Grid>
           <Grid item xs={6}>
-            <Typography variant="body2" sx={{ color: '#fff', mb: 1 }}>
+            <Typography variant="body2" sx={{ color: '#fff', mb: 1, textShadow: '0 0 3px rgba(255, 255, 255, 0.5)' }}>
               MP: {user && user.mp ? `${user.mp.current}/${user.mp.max}` : '0/0'}
             </Typography>
             <LinearProgress
@@ -153,17 +158,18 @@ const StatusWindow = ({ user, expPercentage }) => {
                 mb: 2,
                 backgroundColor: 'rgba(0, 0, 255, 0.2)',
                 '& .MuiLinearProgress-bar': {
-                  backgroundColor: '#0000ff',
+                  backgroundColor: '#4287f5',
+                  boxShadow: '0 0 5px rgba(66, 135, 245, 0.7)',
                 },
               }}
             />
           </Grid>
         </Grid>
 
-        <Divider sx={{ my: isMobile ? 1.5 : 2, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+        <Divider sx={{ my: isMobile ? 1.5 : 2, borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 
         {/* Stats */}
-        <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ mb: isMobile ? 1.5 : 2, fontWeight: 600 }}>Stats</Typography>
+        <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ mb: isMobile ? 1.5 : 2, fontWeight: 600, color: '#ffffff', textShadow: '0 0 5px rgba(255, 255, 255, 0.7)' }}>Stats</Typography>
         <Grid container spacing={isMobile ? 1 : 2}>
           {Object.entries(stats).map(([stat, value]) => (
             <Grid item xs={6} key={stat}>
@@ -186,10 +192,11 @@ const StatusWindow = ({ user, expPercentage }) => {
             mt: 2, 
             p: 1.5, 
             borderRadius: 2, 
-            bgcolor: 'rgba(76, 175, 80, 0.2)',
-            border: '1px solid rgba(76, 175, 80, 0.5)'
+            bgcolor: 'rgba(66, 135, 245, 0.2)',
+            border: '1px solid rgba(66, 135, 245, 0.5)',
+            boxShadow: '0 0 10px rgba(66, 135, 245, 0.3)'
           }}>
-            <Typography sx={{ color: '#4CAF50', fontWeight: 600 }}>
+            <Typography sx={{ color: '#4287f5', fontWeight: 600, textShadow: '0 0 5px rgba(66, 135, 245, 0.7)' }}>
               {user.statPoints} stat points available to allocate
             </Typography>
           </Box>
@@ -202,7 +209,8 @@ const StatusWindow = ({ user, expPercentage }) => {
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
-            gap: 1
+            gap: 1,
+            textShadow: '0 0 5px rgba(255, 215, 0, 0.7)'
           }}>
             <span style={{ fontSize: '1.5rem' }}>⦿</span> {user.currency || 0}
           </Typography>

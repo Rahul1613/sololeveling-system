@@ -19,13 +19,15 @@ import {
   getCompletedQuests,
   getDailyQuests,
   getEmergencyQuests,
-  getPunishmentQuests
+  getPunishmentQuests,
+  getCustomQuests
 } from '../redux/slices/questSlice';
 import DailyQuestList from '../components/quests/DailyQuestList';
 import EmergencyQuestList from '../components/quests/EmergencyQuestList';
 import PunishmentQuestList from '../components/quests/PunishmentQuestList';
 import ActiveQuestList from '../components/quests/ActiveQuestList';
 import CompletedQuestList from '../components/quests/CompletedQuestList';
+import CustomQuestList from '../components/quests/CustomQuestList';
 import CreateCustomQuest from '../components/quests/CreateCustomQuest';
 
 // Styled components
@@ -96,6 +98,7 @@ const Quests = () => {
     dailyQuests,
     emergencyQuests,
     punishmentQuests,
+    customQuests,
     isLoading, 
     error 
   } = useSelector((state) => state.quests);
@@ -104,12 +107,16 @@ const Quests = () => {
     // Load all quest data when component mounts
     const loadQuestData = async () => {
       try {
-        await dispatch(getQuests()).unwrap();
-        await dispatch(getActiveQuests()).unwrap();
-        await dispatch(getCompletedQuests()).unwrap();
-        await dispatch(getDailyQuests()).unwrap();
-        await dispatch(getEmergencyQuests()).unwrap();
-        await dispatch(getPunishmentQuests()).unwrap();
+        // Use Promise.all to fetch all quest data in parallel instead of sequentially
+        await Promise.all([
+          dispatch(getQuests()).unwrap(),
+          dispatch(getActiveQuests()).unwrap(),
+          dispatch(getCompletedQuests()).unwrap(),
+          dispatch(getDailyQuests()).unwrap(),
+          dispatch(getEmergencyQuests()).unwrap(),
+          dispatch(getPunishmentQuests()).unwrap(),
+          dispatch(getCustomQuests()).unwrap()
+        ]);
       } catch (error) {
         setNotification({
           open: true,
@@ -173,6 +180,7 @@ const Quests = () => {
           <StyledTab label="Punishment Quests" />
           <StyledTab label="Active Quests" />
           <StyledTab label="Completed Quests" />
+          <StyledTab label="Custom Quests" />
           <StyledTab label="Create Custom Quest" />
         </StyledTabs>
 
@@ -197,6 +205,10 @@ const Quests = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={5}>
+          <CustomQuestList quests={customQuests} />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={6}>
           <CreateCustomQuest />
         </TabPanel>
       </Paper>

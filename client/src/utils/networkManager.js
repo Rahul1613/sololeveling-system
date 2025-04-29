@@ -17,6 +17,11 @@ class NetworkManager {
     this.lastSuccessfulConnection = null;
     this.connectionCheckInterval = null;
     this.listeners = [];
+    this.showErrors = true; // Flag to control error display
+    this.skipConnectionCheck = false; // Flag to completely skip connection checks
+    this.isDevelopment = process.env.NODE_ENV === 'development' || 
+                         process.env.REACT_APP_USE_MOCK_API === 'true' || 
+                         window.location.hostname === 'localhost';
     
     // Initialize event listeners
     this._initEventListeners();
@@ -31,9 +36,44 @@ class NetworkManager {
     window.addEventListener('online', () => this._handleOnlineStatus(true));
     window.addEventListener('offline', () => this._handleOnlineStatus(false));
     
-    // Start connection health check if configured
-    if (NETWORK_CONFIG && NETWORK_CONFIG.connectionCheckInterval) {
+    // Start connection health check if configured and not in development
+    if (NETWORK_CONFIG && NETWORK_CONFIG.connectionCheckInterval && !this.isDevelopment && !this.skipConnectionCheck) {
       this._startConnectionHealthCheck();
+    } else if (this.isDevelopment) {
+      // In development, set as online and don't check connection
+      this.lastSuccessfulConnection = Date.now();
+      this._handleOnlineStatus(true);
+      console.log('Development mode: Network connection checks disabled');
+    }
+  }
+  
+  /**
+   * Initialize the network manager
+   */
+  init() {
+    try {
+      // In development mode, just set as online and don't check connection
+      if (this.isDevelopment) {
+        this.lastSuccessfulConnection = Date.now();
+        this._handleOnlineStatus(true);
+        return;
+      }
+      
+      // Try to restore API URL from localStorage
+      const savedUrl = localStorage.getItem('server_url');
+      if (savedUrl) {
+        this.currentApiUrl = savedUrl;
+      }
+      
+      // Check initial connection
+      if (!this.skipConnectionCheck) {
+        this.checkServerConnection();
+      }
+      
+    } catch (error) {
+      if (this.showErrors) {
+        console.error('Failed to initialize network manager:', error);
+      }
     }
   }
   
@@ -56,7 +96,7 @@ class NetworkManager {
       console.log(`Network status changed: ${isOnline ? 'Online' : 'Offline'}`);
       
       // If we're back online, try to reconnect
-      if (isOnline && !wasOnline) {
+      if (isOnline && !wasOnline && !this.isDevelopment && !this.skipConnectionCheck) {
         this.checkServerConnection();
       }
     }
@@ -67,6 +107,12 @@ class NetworkManager {
    * @private
    */
   _startConnectionHealthCheck() {
+    // Skip if connection check is disabled
+    if (this.skipConnectionCheck) {
+      console.log('Connection health check disabled');
+      return;
+    }
+    
     // Clear any existing interval
     if (this.connectionCheckInterval) {
       clearInterval(this.connectionCheckInterval);
@@ -102,7 +148,9 @@ class NetworkManager {
     try {
       localStorage.setItem('server_url', url);
     } catch (error) {
-      console.error('Failed to save API URL to localStorage:', error);
+      if (this.showErrors) {
+        console.error('Failed to save API URL to localStorage:', error);
+      }
     }
     
     console.log(`API URL set to: ${url}`);
@@ -151,7 +199,9 @@ class NetworkManager {
       this.setApiUrl(API_URL);
       return API_URL;
     } catch (error) {
-      console.error('Error in tryNextFallbackUrl:', error);
+      if (this.showErrors) {
+        console.error('Error in tryNextFallbackUrl:', error);
+      }
       return API_URL;
     }
   }
@@ -161,18 +211,21 @@ class NetworkManager {
    * @returns {Promise<boolean>} Whether the server is reachable
    */
   async checkServerConnection() {
-    // In mock environment, always return true to avoid network errors
-    if (process.env.NODE_ENV === 'development' || 
-        process.env.REACT_APP_USE_MOCK_API === 'true' || 
-        window.location.hostname === 'localhost') {
-      
+    // Skip connection check if flag is set
+    if (this.skipConnectionCheck) {
+      // Simulate successful connection
+      this.lastSuccessfulConnection = Date.now();
+      this._handleOnlineStatus(true);
+      return true;
+    }
+    
+    // In development environment, always return true to avoid network errors
+    if (this.isDevelopment) {
       // Simulate successful connection
       this.lastSuccessfulConnection = Date.now();
       this._handleOnlineStatus(true);
       
-      // Log for debugging
-      console.log('Mock environment detected: Simulating successful server connection');
-      
+      // Don't log in development to avoid console spam
       return true;
     }
     
@@ -209,41 +262,100 @@ class NetworkManager {
       if (response.ok) {
         // Update last successful connection time
         this.lastSuccessfulConnection = Date.now();
-        
-        // If we were using a fallback, reset to primary if it's working
-        if (this.currentApiUrl !== API_URL) {
-          // Try the primary URL next time
-          this.currentFallbackIndex = 0;
-        }
-        
-        // We're online
         this._handleOnlineStatus(true);
         return true;
+      } else {
+        // Try fallback URL
+        this.tryNextFallbackUrl();
+        return false;
       }
-      
-      // Server responded but with an error
-      console.warn(`Server health check failed: ${response.status} ${response.statusText}`);
-      
-      // Try a fallback URL
-      this.tryNextFallbackUrl();
-      
-      // We're online but server has issues
-      this._handleOnlineStatus(true);
-      return false;
     } catch (error) {
-      // Request failed
-      console.error('Server connection check failed:', error.name === 'AbortError' ? 'Timeout' : error.message);
+      // Only log error if showErrors is true
+      if (this.showErrors && error.name !== 'AbortError') {
+        console.error('Server connection check failed:', error.message);
+      }
       
-      // Try a fallback URL
-      this.tryNextFallbackUrl();
+      // Check if we should try a fallback URL
+      const timeSinceLastSuccess = this.lastSuccessfulConnection ? 
+        Date.now() - this.lastSuccessfulConnection : 
+        Infinity;
       
-      // If it's been too long since last successful connection, mark as offline
-      const offlineThreshold = 30000; // 30 seconds
-      if (!this.lastSuccessfulConnection || (Date.now() - this.lastSuccessfulConnection > offlineThreshold)) {
-        this._handleOnlineStatus(false);
+      const maxOfflineTime = NETWORK_CONFIG?.maxOfflineTimeBeforeFallback || 10000;
+      
+      if (timeSinceLastSuccess > maxOfflineTime) {
+        this.tryNextFallbackUrl();
       }
       
       return false;
+    }
+  }
+  
+  /**
+   * Add a listener for network events
+   * @param {Function} callback - The callback function
+   * @returns {Function} A function to remove the listener
+   */
+  addListener(callback) {
+    if (typeof callback !== 'function') return () => {};
+    
+    this.listeners.push(callback);
+    
+    // Return a function to remove the listener
+    return () => {
+      this.listeners = this.listeners.filter(listener => listener !== callback);
+    };
+  }
+  
+  /**
+   * Notify all listeners of an event
+   * @param {Object} event - The event object
+   * @private
+   */
+  notifyListeners(event) {
+    this.listeners.forEach(listener => {
+      try {
+        listener(event);
+      } catch (error) {
+        if (this.showErrors) {
+          console.error('Error in network event listener:', error);
+        }
+      }
+    });
+  }
+  
+  /**
+   * Get the time since the last successful connection
+   * @returns {number|null} Time in milliseconds or null if never connected
+   */
+  getTimeSinceLastConnection() {
+    if (!this.lastSuccessfulConnection) return null;
+    return Date.now() - this.lastSuccessfulConnection;
+  }
+  
+  /**
+   * Check if the server connection is healthy
+   * @returns {boolean} Whether the connection is healthy
+   */
+  isConnectionHealthy() {
+    // In development, always return true
+    if (this.isDevelopment) return true;
+    
+    // If never connected, return false
+    if (!this.lastSuccessfulConnection) return false;
+    
+    // Check time since last successful connection
+    const maxHealthyTime = NETWORK_CONFIG?.maxHealthyTime || 10000;
+    return (Date.now() - this.lastSuccessfulConnection) < maxHealthyTime;
+  }
+  
+  /**
+   * Stop connection health check
+   */
+  stopConnectionHealthCheck() {
+    if (this.connectionCheckInterval) {
+      clearInterval(this.connectionCheckInterval);
+      this.connectionCheckInterval = null;
+      console.log('Stopped connection health check');
     }
   }
   
@@ -252,63 +364,16 @@ class NetworkManager {
    * @returns {boolean} Whether the server is reachable
    */
   isServerReachable() {
-    // In mock/development mode, always return true to avoid showing "Server Unreachable"
-    if (process.env.NODE_ENV === 'development' || process.env.REACT_APP_USE_MOCK_API === 'true') {
+    // In development mode or if connection checks are skipped, always return true
+    if (this.isDevelopment || this.skipConnectionCheck) {
       return true;
     }
     
-    // Return true if we've had a successful connection recently
-    // Consider the server reachable if we've connected in the last 30 seconds
-    const recentConnectionThreshold = 30000; // 30 seconds
-    
-    if (!this.lastSuccessfulConnection) {
-      return false;
-    }
-    
-    return (Date.now() - this.lastSuccessfulConnection) < recentConnectionThreshold;
-  }
-  
-  /**
-   * Add a network status listener
-   * @param {Function} listener - The listener function
-   * @returns {Function} A function to remove the listener
-   */
-  addListener(listener) {
-    if (typeof listener === 'function' && !this.listeners.includes(listener)) {
-      this.listeners.push(listener);
-      // Return a function that removes this specific listener
-      return () => this.removeListener(listener);
-    }
-    // Return a no-op function if listener wasn't added
-    return () => {};
-  }
-  
-  /**
-   * Remove a network status listener
-   * @param {Function} listener - The listener function to remove
-   */
-  removeListener(listener) {
-    const index = this.listeners.indexOf(listener);
-    if (index !== -1) {
-      this.listeners.splice(index, 1);
-    }
-  }
-  
-  /**
-   * Notify all listeners of a network event
-   * @param {Object} event - The event object
-   */
-  notifyListeners(event) {
-    this.listeners.forEach(listener => {
-      try {
-        listener(event);
-      } catch (error) {
-        console.error('Error in network listener:', error);
-      }
-    });
+    // Otherwise, return based on the last connection check
+    return this.isOnline && this.lastSuccessfulConnection !== null;
   }
 }
 
-// Create and export a singleton instance
+// Create and export singleton instance
 const networkManager = new NetworkManager();
 export default networkManager;

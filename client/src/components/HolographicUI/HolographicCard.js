@@ -4,10 +4,10 @@ import { styled, useTheme } from '@mui/material/styles';
 
 // Styled Material UI Card with glowing effect
 const GlowingCard = styled(Card)(({ theme }) => ({
-  background: 'rgba(30, 30, 40, 0.7)',
+  background: 'rgba(0, 0, 0, 0.8)',
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(123, 104, 238, 0.5)',
-  boxShadow: '0 0 15px rgba(123, 104, 238, 0.5)',
+  border: '1px solid rgba(66, 135, 245, 0.5)',
+  boxShadow: '0 0 15px rgba(66, 135, 245, 0.5)',
   borderRadius: '12px',
   position: 'relative',
   overflow: 'visible',
@@ -20,7 +20,7 @@ const GlowingCard = styled(Card)(({ theme }) => ({
     bottom: '-1px',
     borderRadius: '12px',
     padding: '1px',
-    background: 'linear-gradient(45deg, rgba(123, 104, 238, 0.8), rgba(76, 175, 80, 0.8))',
+    background: 'linear-gradient(45deg, rgba(66, 135, 245, 0.8), rgba(255, 255, 255, 0.8))',
     WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
     WebkitMaskComposite: 'xor',
     maskComposite: 'exclude',
@@ -28,7 +28,7 @@ const GlowingCard = styled(Card)(({ theme }) => ({
   },
   [theme.breakpoints.down('sm')]: {
     borderRadius: '8px',
-    boxShadow: '0 0 10px rgba(123, 104, 238, 0.4)',
+    boxShadow: '0 0 10px rgba(66, 135, 245, 0.4)',
     '&:before': {
       borderRadius: '8px',
     }
@@ -41,15 +41,15 @@ const HolographicIcon = () => {
     <div style={{
       width: '40px',
       height: '40px',
-      background: 'linear-gradient(135deg, rgba(123, 104, 238, 0.8), rgba(76, 175, 80, 0.8))',
+      background: 'linear-gradient(135deg, rgba(66, 135, 245, 0.8), rgba(255, 255, 255, 0.8))',
       borderRadius: '8px',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      boxShadow: '0 0 10px rgba(123, 104, 238, 0.5)',
+      boxShadow: '0 0 10px rgba(66, 135, 245, 0.5)',
       animation: 'pulse 2s infinite ease-in-out'
     }}>
-      <span style={{ color: 'white', fontSize: '20px' }}>SL</span>
+      <span style={{ color: 'white', fontSize: '20px', textShadow: '0 0 5px #ffffff' }}>SL</span>
     </div>
   );
 };
@@ -61,8 +61,8 @@ const HolographicCard = ({
   height = 300, 
   width = '100%', 
   children,
-  backgroundColor = 'rgba(30, 30, 40, 0.7)',
-  borderColor = 'rgba(123, 104, 238, 0.5)',
+  backgroundColor = 'rgba(0, 0, 0, 0.8)',
+  borderColor = 'rgba(66, 135, 245, 0.5)',
   showHologram = true
 }) => {
   const theme = useTheme();
@@ -76,7 +76,7 @@ const HolographicCard = ({
       borderColor,
       transition: 'all 0.3s ease',
       '&:hover': {
-        boxShadow: isMobile ? '0 0 15px rgba(123, 104, 238, 0.5)' : '0 0 25px rgba(123, 104, 238, 0.8)',
+        boxShadow: isMobile ? '0 0 15px rgba(66, 135, 245, 0.5)' : '0 0 25px rgba(66, 135, 245, 0.8)',
         transform: isMobile ? 'none' : 'translateY(-5px)',
       },
     }}>
@@ -87,13 +87,15 @@ const HolographicCard = ({
         '&:last-child': { paddingBottom: isMobile ? 2 : 3 }
       }}>
         {title && <h3 style={{ 
-          color: '#7B68EE', 
+          color: '#ffffff', 
           marginTop: 0, 
           fontSize: isMobile ? '1.2rem' : '1.5rem',
-          marginBottom: isMobile ? '0.8rem' : '1rem'
+          marginBottom: isMobile ? '0.8rem' : '1rem',
+          textShadow: '0 0 8px rgba(66, 135, 245, 0.8)',
+          fontWeight: 'bold'
         }}>{title}</h3>}
         
-        {content && <div>{content}</div>}
+        {content && <div style={{ textShadow: '0 0 3px rgba(255, 255, 255, 0.5)' }}>{content}</div>}
         
         {children}
         

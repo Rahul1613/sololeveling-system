@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
-import { API_URL } from '../../config';
 import mockService from '../../api/mockService';
 
 const VerificationDashboard = () => {
-  const { token } = useSelector(state => state.auth);
   const [verifications, setVerifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,7 +65,7 @@ const VerificationDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   // Load verifications on component mount
   useEffect(() => {

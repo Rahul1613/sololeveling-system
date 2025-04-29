@@ -1,5 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import marketplaceService from '../../api/marketplaceService';
+import axios from 'axios';
+import { 
+  sampleMarketplaceItems, 
+  getFeaturedItems as fetchFeaturedItems, 
+  getRecommendedItems as fetchRecommendedItems 
+} from '../../utils/marketplaceData';
 
 const initialState = {
   items: [],
@@ -16,7 +21,9 @@ export const getMarketplaceItems = createAsyncThunk(
   'marketplace/getItems',
   async (filters, thunkAPI) => {
     try {
-      return await marketplaceService.getMarketplaceItems(filters);
+      // For testing, use our sample data instead of API call
+      console.log('Sample marketplace items:', sampleMarketplaceItems);
+      return sampleMarketplaceItems;
     } catch (error) {
       const message = 
         (error.response && 
@@ -35,7 +42,19 @@ export const buyItem = createAsyncThunk(
   'marketplace/buy',
   async ({ itemId, quantity }, thunkAPI) => {
     try {
-      return await marketplaceService.buyItem(itemId, quantity);
+      // For testing, simulate a successful purchase
+      const item = sampleMarketplaceItems.find(item => item._id === itemId);
+      if (!item) {
+        return thunkAPI.rejectWithValue('Item not found');
+      }
+      
+      // Return a mock response
+      return {
+        success: true,
+        item: item,
+        quantity: quantity,
+        message: `Successfully purchased ${quantity} ${item.name}`
+      };
     } catch (error) {
       const message = 
         (error.response && 
@@ -52,9 +71,23 @@ export const buyItem = createAsyncThunk(
 // Sell an item to the marketplace
 export const sellItem = createAsyncThunk(
   'marketplace/sell',
-  async ({ itemId, quantity }, thunkAPI) => {
+  async ({ itemId, quantity, itemData }, thunkAPI) => {
     try {
-      return await marketplaceService.sellItem(itemId, quantity);
+      // For testing, simulate a successful sale
+      // If itemData is provided (for new listings), use that
+      // Otherwise find the item in the sample data
+      const item = itemData || sampleMarketplaceItems.find(item => item._id === itemId);
+      if (!item && !itemData) {
+        return thunkAPI.rejectWithValue('Item not found');
+      }
+      
+      // Return a mock response
+      return {
+        success: true,
+        item: itemData || item,
+        quantity: quantity,
+        message: itemData ? 'Item listed successfully' : `Successfully sold ${quantity} ${item.name}`
+      };
     } catch (error) {
       const message = 
         (error.response && 
@@ -73,7 +106,11 @@ export const getFeaturedItems = createAsyncThunk(
   'marketplace/getFeatured',
   async (_, thunkAPI) => {
     try {
-      return await marketplaceService.getFeaturedItems();
+      // For testing, use our sample data instead of API call
+      // Use the imported function from marketplaceData.js
+      const featuredItems = fetchFeaturedItems();
+      console.log('Featured items:', featuredItems);
+      return featuredItems;
     } catch (error) {
       const message = 
         (error.response && 
@@ -92,7 +129,11 @@ export const getRecommendedItems = createAsyncThunk(
   'marketplace/getRecommended',
   async (_, thunkAPI) => {
     try {
-      return await marketplaceService.getRecommendedItems();
+      // For testing, use our sample data instead of API call
+      // Use the imported function from marketplaceData.js
+      const recommendedItems = fetchRecommendedItems(5); // Assume user level 5 for testing
+      console.log('Recommended items:', recommendedItems);
+      return recommendedItems;
     } catch (error) {
       const message = 
         (error.response && 
@@ -126,7 +167,7 @@ export const marketplaceSlice = createSlice({
       .addCase(getMarketplaceItems.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.items = action.payload.items;
+        state.items = action.payload; // Direct assignment, not action.payload.items
       })
       .addCase(getMarketplaceItems.rejected, (state, action) => {
         state.isLoading = false;
@@ -177,7 +218,7 @@ export const marketplaceSlice = createSlice({
       .addCase(getFeaturedItems.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.featuredItems = action.payload.items;
+        state.featuredItems = action.payload; // Direct assignment, not action.payload.items
       })
       .addCase(getFeaturedItems.rejected, (state, action) => {
         state.isLoading = false;
@@ -192,7 +233,7 @@ export const marketplaceSlice = createSlice({
       .addCase(getRecommendedItems.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.recommendedItems = action.payload.items;
+        state.recommendedItems = action.payload; // Direct assignment, not action.payload.items
       })
       .addCase(getRecommendedItems.rejected, (state, action) => {
         state.isLoading = false;

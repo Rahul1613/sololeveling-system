@@ -9,6 +9,7 @@ import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { addNotification } from '../../redux/slices/notificationSlice';
+import SummoningAnimation from './SummoningAnimation';
 import './ShadowSummoning.css';
 
 const ShadowSummoning = ({ onSummonComplete }) => {
@@ -23,6 +24,7 @@ const ShadowSummoning = ({ onSummonComplete }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [newShadow, setNewShadow] = useState(null);
+  const [showAnimation, setShowAnimation] = useState(false);
   
   // Generate random shadow name
   const generateRandomName = () => {
@@ -70,6 +72,63 @@ const ShadowSummoning = ({ onSummonComplete }) => {
     
     const cost = getSummonCost();
     
+    // Always show animation in development mode
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Mock shadow data for development
+        const mockShadow = {
+          _id: `shadow_${Date.now()}`,
+          name: shadowName,
+          type: shadowType,
+          level: 1,
+          summonType,
+          stats: {
+            strength: summonType === 'premium' ? 15 : (summonType === 'advanced' ? 10 : 5),
+            agility: summonType === 'premium' ? 12 : (summonType === 'advanced' ? 8 : 4),
+            intelligence: summonType === 'premium' ? 10 : (summonType === 'advanced' ? 6 : 3),
+          },
+          abilities: [],
+          createdAt: new Date().toISOString()
+        };
+        
+        // Directly show animation first
+        setShowAnimation(true);
+        
+        // Simulate API delay
+        setTimeout(() => {
+          // Set success state
+          setSuccess(true);
+          setNewShadow(mockShadow);
+          
+          // Show success notification
+          dispatch(addNotification({
+            type: 'success',
+            title: 'Shadow Summoned',
+            message: `${mockShadow.name} has joined your shadow army!`,
+            style: 'success',
+            soundEffect: 'shadow_summon.mp3'
+          }));
+          
+          // Call the onSummonComplete callback
+          if (onSummonComplete) {
+            onSummonComplete(mockShadow);
+          }
+          
+          setLoading(false);
+        }, 1500);
+        
+      } catch (error) {
+        console.error('Error summoning shadow:', error);
+        setError('Failed to summon shadow');
+        setLoading(false);
+      }
+      return;
+    }
+    
+    // Production implementation
     if ((user?.currency || 0) < cost) {
       setError(`You don't have enough currency. Summoning costs ${cost}.`);
       return;
@@ -90,11 +149,17 @@ const ShadowSummoning = ({ onSummonComplete }) => {
       });
       
       // Update user currency in Redux store
-
+      dispatch({
+        type: 'user/updateCurrency',
+        payload: (user.currency || 0) - cost
+      });
       
       // Set success state
       setSuccess(true);
       setNewShadow(response.data);
+      
+      // Show animation
+      setShowAnimation(true);
       
       // Show success notification
       dispatch(addNotification({
@@ -135,218 +200,229 @@ const ShadowSummoning = ({ onSummonComplete }) => {
   };
   
   return (
-    <Card className="shadow-summoning-card">
-      <Card.Header>
-        <h4>
-          <FontAwesomeIcon icon={faUserPlus} className="me-2" />
-          Shadow Summoning
-        </h4>
-      </Card.Header>
-      
-      <Card.Body>
-        {success && newShadow ? (
-          <div className="summon-success">
-            <div className="success-icon">
-              <FontAwesomeIcon icon={faCheck} />
-            </div>
-            
-            <h4>Summoning Successful!</h4>
-            
-            <div className="new-shadow-info">
-              <div className="shadow-image-container">
-                <img 
-                  src={newShadow.image || '/images/shadows/default-shadow.png'} 
-                  alt={newShadow.name} 
-                  className="shadow-image"
-                />
+    <>
+      <Card className="shadow-summoning-card">
+        <Card.Header>
+          <h4>
+            <FontAwesomeIcon icon={faUserPlus} className="me-2" />
+            Shadow Summoning
+          </h4>
+        </Card.Header>
+        
+        <Card.Body>
+          {success && newShadow ? (
+            <div className="summon-success">
+              <div className="success-icon">
+                <FontAwesomeIcon icon={faCheck} />
               </div>
               
-              <div className="shadow-details">
-                <div className="shadow-name">{newShadow.name}</div>
-                <div className="shadow-type">{newShadow.type}</div>
-                <div className="shadow-level">Level {newShadow.level}</div>
-                <div className="shadow-rank">Rank {newShadow.rank}</div>
-              </div>
-            </div>
-            
-            <div className="success-actions">
-              <Button 
-                variant="primary" 
-                className="view-shadow-btn"
-                onClick={() => {
-                  if (onSummonComplete) {
-                    onSummonComplete(newShadow);
-                  }
-                }}
-              >
-                View Shadow
-              </Button>
+              <h4>Summoning Successful!</h4>
               
-              <Button 
-                variant="outline-secondary" 
-                className="summon-again-btn"
-                onClick={handleReset}
-              >
-                Summon Again
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="summon-info">
-              <p>
-                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                Summon a shadow to join your army. Each shadow has unique stats and abilities based on its type.
-              </p>
-            </div>
-            
-            <Form>
-              <Form.Group className="mb-3">
-                <Form.Label>Shadow Name</Form.Label>
-                <div className="name-input-group">
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter shadow name"
-                    value={shadowName}
-                    onChange={(e) => setShadowName(e.target.value)}
-                    maxLength={30}
+              <div className="new-shadow-info">
+                <div className="shadow-image-container">
+                  <img 
+                    src={newShadow.image || '/images/shadows/default-shadow.png'} 
+                    alt={newShadow.name} 
+                    className="shadow-image"
                   />
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={generateRandomName}
-                    title="Generate random name"
-                  >
-                    <FontAwesomeIcon icon={faRandom} />
-                  </Button>
-                </div>
-              </Form.Group>
-              
-              <Form.Group className="mb-3">
-                <Form.Label>Shadow Type</Form.Label>
-                <Form.Select 
-                  value={shadowType} 
-                  onChange={(e) => setShadowType(e.target.value)}
-                >
-                  <option value="soldier">Soldier</option>
-                  <option value="knight">Knight</option>
-                  <option value="mage">Mage</option>
-                  <option value="archer">Archer</option>
-                  <option value="assassin">Assassin</option>
-                  <option value="tank">Tank</option>
-                  <option value="healer">Healer</option>
-                </Form.Select>
-                <Form.Text className="text-muted">
-                  Each type has different base stats and abilities.
-                </Form.Text>
-              </Form.Group>
-              
-              <Form.Group className="mb-4">
-                <Form.Label>Summoning Method</Form.Label>
-                <Row className="summon-options">
-                  <Col md={4}>
-                    <div 
-                      className={`summon-option ${summonType === 'basic' ? 'active' : ''}`}
-                      onClick={() => setSummonType('basic')}
-                    >
-                      <div className="option-header">
-                        <h5>Basic</h5>
-                        <div className="option-cost">
-                          <FontAwesomeIcon icon={faCoins} className="me-1" />
-                          200
-                        </div>
-                      </div>
-                      <div className="option-description">
-                        {getSummonDescription()}
-                      </div>
-                    </div>
-                  </Col>
-                  
-                  <Col md={4}>
-                    <div 
-                      className={`summon-option ${summonType === 'advanced' ? 'active' : ''}`}
-                      onClick={() => setSummonType('advanced')}
-                    >
-                      <div className="option-header">
-                        <h5>Advanced</h5>
-                        <div className="option-cost">
-                          <FontAwesomeIcon icon={faCoins} className="me-1" />
-                          500
-                        </div>
-                      </div>
-                      <div className="option-description">
-                        {getSummonDescription()}
-                      </div>
-                    </div>
-                  </Col>
-                  
-                  <Col md={4}>
-                    <div 
-                      className={`summon-option ${summonType === 'premium' ? 'active' : ''}`}
-                      onClick={() => setSummonType('premium')}
-                    >
-                      <div className="option-header">
-                        <h5>Premium</h5>
-                        <div className="option-cost">
-                          <FontAwesomeIcon icon={faCoins} className="me-1" />
-                          1000
-                        </div>
-                      </div>
-                      <div className="option-description">
-                        {getSummonDescription()}
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-              </Form.Group>
-              
-              {error && (
-                <Alert variant="danger" className="mb-3">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
-                  {error}
-                </Alert>
-              )}
-              
-              <div className="summon-footer">
-                <div className="currency-display">
-                  <span>Your Currency:</span>
-                  <span className="currency-amount">
-                    <FontAwesomeIcon icon={faCoins} className="me-1" />
-                    {user.currency}
-                  </span>
                 </div>
                 
+                <div className="shadow-details">
+                  <div className="shadow-name">{newShadow.name}</div>
+                  <div className="shadow-type">{newShadow.type}</div>
+                  <div className="shadow-level">Level {newShadow.level}</div>
+                  <div className="shadow-rank">Rank {newShadow.rank}</div>
+                </div>
+              </div>
+              
+              <div className="success-actions">
                 <Button 
                   variant="primary" 
-                  className="summon-btn"
-                  onClick={handleSummon}
-                  disabled={loading || !shadowName.trim() || user.currency < getSummonCost()}
+                  className="view-shadow-btn"
+                  onClick={() => {
+                    if (onSummonComplete) {
+                      onSummonComplete(newShadow);
+                    }
+                  }}
                 >
-                  {loading ? (
-                    <>
-                      <Spinner 
-                        as="span" 
-                        animation="border" 
-                        size="sm" 
-                        role="status" 
-                        aria-hidden="true" 
-                      />
-                      <span className="ms-2">Summoning...</span>
-                    </>
-                  ) : (
-                    <>
-                      Summon Shadow
-                      <span className="ms-2">
-                        (<FontAwesomeIcon icon={faCoins} /> {getSummonCost()})
-                      </span>
-                    </>
-                  )}
+                  View Shadow
+                </Button>
+                
+                <Button 
+                  variant="outline-secondary" 
+                  className="summon-again-btn"
+                  onClick={handleReset}
+                >
+                  Summon Again
                 </Button>
               </div>
-            </Form>
-          </>
-        )}
-      </Card.Body>
-    </Card>
+            </div>
+          ) : (
+            <>
+              <div className="summon-info">
+                <p>
+                  <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                  Summon a shadow to join your army. Each shadow has unique stats and abilities based on its type.
+                </p>
+              </div>
+              
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Shadow Name</Form.Label>
+                  <div className="name-input-group">
+                    <Form.Control
+                      type="text"
+                      placeholder="Enter shadow name"
+                      value={shadowName}
+                      onChange={(e) => setShadowName(e.target.value)}
+                      maxLength={30}
+                    />
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={generateRandomName}
+                      title="Generate random name"
+                    >
+                      <FontAwesomeIcon icon={faRandom} />
+                    </Button>
+                  </div>
+                </Form.Group>
+                
+                <Form.Group className="mb-3">
+                  <Form.Label>Shadow Type</Form.Label>
+                  <Form.Select 
+                    value={shadowType} 
+                    onChange={(e) => setShadowType(e.target.value)}
+                  >
+                    <option value="soldier">Soldier</option>
+                    <option value="knight">Knight</option>
+                    <option value="mage">Mage</option>
+                    <option value="archer">Archer</option>
+                    <option value="assassin">Assassin</option>
+                    <option value="tank">Tank</option>
+                    <option value="healer">Healer</option>
+                  </Form.Select>
+                  <Form.Text className="text-muted">
+                    Each type has different base stats and abilities.
+                  </Form.Text>
+                </Form.Group>
+                
+                <Form.Group className="mb-4">
+                  <Form.Label>Summoning Method</Form.Label>
+                  <Row className="summon-options">
+                    <Col md={4}>
+                      <div 
+                        className={`summon-option ${summonType === 'basic' ? 'active' : ''}`}
+                        onClick={() => setSummonType('basic')}
+                      >
+                        <div className="option-header">
+                          <h5>Basic</h5>
+                          <div className="option-cost">
+                            <FontAwesomeIcon icon={faCoins} className="me-1" />
+                            200
+                          </div>
+                        </div>
+                        <div className="option-description">
+                          {getSummonDescription()}
+                        </div>
+                      </div>
+                    </Col>
+                    
+                    <Col md={4}>
+                      <div 
+                        className={`summon-option ${summonType === 'advanced' ? 'active' : ''}`}
+                        onClick={() => setSummonType('advanced')}
+                      >
+                        <div className="option-header">
+                          <h5>Advanced</h5>
+                          <div className="option-cost">
+                            <FontAwesomeIcon icon={faCoins} className="me-1" />
+                            500
+                          </div>
+                        </div>
+                        <div className="option-description">
+                          {getSummonDescription()}
+                        </div>
+                      </div>
+                    </Col>
+                    
+                    <Col md={4}>
+                      <div 
+                        className={`summon-option ${summonType === 'premium' ? 'active' : ''}`}
+                        onClick={() => setSummonType('premium')}
+                      >
+                        <div className="option-header">
+                          <h5>Premium</h5>
+                          <div className="option-cost">
+                            <FontAwesomeIcon icon={faCoins} className="me-1" />
+                            1000
+                          </div>
+                        </div>
+                        <div className="option-description">
+                          {getSummonDescription()}
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </Form.Group>
+                
+                {error && (
+                  <Alert variant="danger" className="mb-3">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                    {error}
+                  </Alert>
+                )}
+                
+                <div className="summon-footer">
+                  <div className="currency-display">
+                    <span>Your Currency:</span>
+                    <span className="currency-amount">
+                      <FontAwesomeIcon icon={faCoins} className="me-1" />
+                      {user.currency}
+                    </span>
+                  </div>
+                  
+                  <Button 
+                    variant="primary" 
+                    className="summon-btn"
+                    onClick={handleSummon}
+                    disabled={loading || !shadowName.trim() || user.currency < getSummonCost()}
+                  >
+                    {loading ? (
+                      <>
+                        <Spinner 
+                          as="span" 
+                          animation="border" 
+                          size="sm" 
+                          role="status" 
+                          aria-hidden="true" 
+                        />
+                        <span className="ms-2">Summoning...</span>
+                      </>
+                    ) : (
+                      <>
+                        Summon Shadow
+                        <span className="ms-2">
+                          (<FontAwesomeIcon icon={faCoins} /> {getSummonCost()})
+                        </span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </Form>
+            </>
+          )}
+        </Card.Body>
+      </Card>
+      
+      {/* Summoning Animation */}
+      <SummoningAnimation 
+        open={showAnimation}
+        onClose={() => setShowAnimation(false)}
+        shadowType={shadowType}
+        shadowName={shadowName}
+        summonType={summonType}
+      />
+    </>
   );
 };
 

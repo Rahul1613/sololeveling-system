@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import shadowService from '../../api/shadowService';
+import databaseService from '../../api/databaseService';
 import errorHandler from '../../utils/errorHandler';
 
 const initialState = {
@@ -16,13 +17,23 @@ const initialState = {
 
 // Get user's shadow army
 export const getShadows = createAsyncThunk(
-  'shadows/getAll',
+  'shadows/getShadows',
   async (_, thunkAPI) => {
     try {
-      return await shadowService.getShadows();
+      console.log('Shadow Slice: Getting shadows');
+      // Try to get from database service first
+      const storedShadows = databaseService.loadFromStorage('shadows', []);
+      if (storedShadows && storedShadows.length > 0) {
+        console.log('Shadow Slice: Using cached shadows from storage');
+        return { shadows: storedShadows };
+      }
+      
+      // If not in storage, get from API
+      const response = await shadowService.getShadows();
+      return response;
     } catch (error) {
-      const message = errorHandler.formatErrorMessage(error);
-      return thunkAPI.rejectWithValue(message);
+      console.error('Get shadows error in slice:', error);
+      return thunkAPI.rejectWithValue(error.message || 'Failed to get shadows');
     }
   }
 );
@@ -55,13 +66,21 @@ export const createShadow = createAsyncThunk(
 
 // Update a shadow
 export const updateShadow = createAsyncThunk(
-  'shadows/update',
+  'shadows/updateShadow',
   async ({ shadowId, shadowData }, thunkAPI) => {
     try {
-      return await shadowService.updateShadow(shadowId, shadowData);
+      console.log('Shadow Slice: Updating shadow', shadowData);
+      
+      // Save to database service first for immediate persistence
+      databaseService.saveShadow(shadowData);
+      
+      // Then send to API
+      const response = await shadowService.updateShadow(shadowId, shadowData);
+      return response;
     } catch (error) {
-      const message = errorHandler.formatErrorMessage(error);
-      return thunkAPI.rejectWithValue(message);
+      console.error('Update shadow error in slice:', error);
+      // Even if API call fails, we've already saved to local storage
+      return thunkAPI.rejectWithValue(error.message || 'Failed to update shadow');
     }
   }
 );
@@ -158,14 +177,90 @@ export const getExtractionTargets = createAsyncThunk(
 );
 
 // Extract a shadow from a defeated enemy
+// Helper function to get current user ID
+const getCurrentUserId = () => {
+  try {
+    // Try to get user from localStorage or sessionStorage
+    const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
+    return user && user._id ? user._id : 'guest';
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return 'guest';
+  }
+};
+
 export const extractShadow = createAsyncThunk(
-  'shadows/extract',
+  'shadows/extractShadow',
   async (extractionData, thunkAPI) => {
     try {
-      return await shadowService.extractShadow(extractionData);
+      console.log('Shadow Slice: Extracting shadow', extractionData);
+      
+      // Validate extraction data
+      if (!extractionData) {
+        throw new Error('No extraction data provided');
+      }
+      
+      // Get current user ID
+      const userId = getCurrentUserId();
+      console.log(`Extracting shadow for user: ${userId}`);
+      
+      // Ensure shadow has user ID
+      const shadowWithUserId = {
+        ...extractionData,
+        userId: userId
+      };
+      
+      // Call shadow service to extract shadow
+      const response = await shadowService.extractShadow(shadowWithUserId);
+      
+      // Get current state to access shadows array
+      const state = thunkAPI.getState();
+      const currentShadows = state.shadows.shadows || [];
+      
+      // Create a new shadow object with the response or the original data if no response
+      const newShadow = response || shadowWithUserId;
+      
+      // Create user-specific storage keys
+      const shadowKey = `${userId}_shadow_${newShadow._id}`;
+      const shadowsKey = `${userId}_shadows`;
+      
+      // Save the new shadow to localStorage both individually and as part of the array
+      databaseService.saveShadow(newShadow);
+      
+      // Also manually save to user-specific localStorage
+      localStorage.setItem(shadowKey, JSON.stringify(newShadow));
+      
+      // Get existing user shadows and add the new one
+      const userShadows = JSON.parse(localStorage.getItem(shadowsKey) || '[]');
+      const updatedUserShadows = [...userShadows, newShadow];
+      
+      // Save to both localStorage and sessionStorage
+      localStorage.setItem(shadowsKey, JSON.stringify(updatedUserShadows));
+      sessionStorage.setItem(shadowsKey, JSON.stringify(updatedUserShadows));
+      
+      // Also save the entire updated shadows array to localStorage
+      const updatedShadows = [...currentShadows, newShadow];
+      databaseService.saveToStorage('shadows', updatedShadows);
+      
+      // Log the save operation
+      console.log(`Shadow saved for user ${userId}:`, newShadow);
+      console.log(`Updated shadows array for user ${userId}:`, updatedUserShadows);
+      
+      return newShadow;
     } catch (error) {
-      const message = errorHandler.formatErrorMessage(error);
-      return thunkAPI.rejectWithValue(message);
+      console.error('Extract shadow error in slice:', error);
+      
+      // Even if there's an error, try to save the shadow to localStorage
+      try {
+        if (extractionData) {
+          databaseService.saveShadow(extractionData);
+          console.log('Shadow saved to localStorage despite error:', extractionData);
+        }
+      } catch (saveError) {
+        console.error('Failed to save shadow to localStorage:', saveError);
+      }
+      
+      return thunkAPI.rejectWithValue(error.message || 'Failed to extract shadow');
     }
   }
 );

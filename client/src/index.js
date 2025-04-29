@@ -10,7 +10,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { store } from './redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './redux/store';
+import { initPersistence } from './utils/persistenceManager';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -24,6 +26,9 @@ import '@fontsource/rajdhani';
 
 // Initialize global error interceptor
 initGlobalErrorInterceptor();
+
+// Initialize persistence system
+initPersistence(store);
 
 // Initialize Web Audio API only after user interaction to comply with browser policies
 const initAudio = () => {
@@ -50,9 +55,11 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <GlobalErrorBoundary>
-        <App />
-      </GlobalErrorBoundary>
+      <PersistGate loading={null} persistor={persistor}>
+        <GlobalErrorBoundary>
+          <App />
+        </GlobalErrorBoundary>
+      </PersistGate>
     </Provider>
   </React.StrictMode>
 );

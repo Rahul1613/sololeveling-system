@@ -3,7 +3,8 @@ import { Container, Row, Col, Card, Button, Form, InputGroup, Spinner, Alert, Ta
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faSearch, faFilter, faUserPlus, faExclamationTriangle, 
-  faChevronUp, faChevronDown, faSortAmountUp, faSortAmountDown
+  faChevronUp, faChevronDown, faSortAmountUp, faSortAmountDown,
+  faCamera
 } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
@@ -11,6 +12,7 @@ import StatusWindow from '../components/ui/StatusWindow';
 import ShadowCard from '../components/shadows/ShadowCard';
 import ShadowDetailsModal from '../components/shadows/ShadowDetailsModal';
 import ShadowSummoning from '../components/shadows/ShadowSummoning';
+import ShadowExtraction from '../components/shadows/ShadowExtraction';
 import './ShadowArmyPage.css';
 
 const ShadowArmyPage = () => {
@@ -36,6 +38,7 @@ const ShadowArmyPage = () => {
   
   // State for active tab
   const [activeTab, setActiveTab] = useState('army');
+  const [previousTab, setPreviousTab] = useState('army');
   
   // Fetch shadows from the server
   const fetchShadows = async () => {
@@ -192,6 +195,14 @@ const ShadowArmyPage = () => {
                 onClick={() => setActiveTab('army')}
               >
                 My Army
+              </Button>
+              <Button 
+                variant={activeTab === 'extract' ? 'primary' : 'outline-primary'} 
+                className="tab-btn"
+                onClick={() => setActiveTab('extract')}
+              >
+                <FontAwesomeIcon icon={faCamera} className="me-2" />
+                Extract
               </Button>
               <Button 
                 variant={activeTab === 'summon' ? 'primary' : 'outline-primary'} 
@@ -353,6 +364,8 @@ const ShadowArmyPage = () => {
                   )}
                 </div>
               </>
+            ) : activeTab === 'extract' ? (
+              <ShadowExtraction />
             ) : (
               <ShadowSummoning onSummonComplete={handleSummonComplete} />
             )}
