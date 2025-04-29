@@ -296,15 +296,28 @@ const tryPort = (port) => {
 };
 
 const startServer = async () => {
-  // Try ports in sequence: preferred port, then fallbacks
+  // On Render or production, always use process.env.PORT
+  if (process.env.RENDER || process.env.NODE_ENV === 'production') {
+    const PORT = process.env.PORT;
+    if (!PORT) {
+      console.error('PORT environment variable is required on Render/production!');
+      process.exit(1);
+    }
+    server.listen(PORT, () => {
+      console.log(`[RENDER/PROD] Server running on port ${PORT}`);
+      // No need to write port.json or update client config in production
+    });
+    return;
+  }
+
+  // Local development: try preferred and fallback ports
   const preferredPort = process.env.PORT || 5002;
   const fallbackPorts = [5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010];
   let PORT = preferredPort;
-  
+
   try {
     // Check if preferred port is available
     const isPreferredAvailable = await tryPort(preferredPort);
-    
     if (!isPreferredAvailable) {
       // Try fallback ports
       for (const port of fallbackPorts) {
@@ -315,8 +328,7 @@ const startServer = async () => {
         }
       }
     }
-    
-    // Start server with selected port
+
     server.on('error', (error) => {
       console.error('Server error:', error);
       if (error.code === 'EADDRINUSE') {
@@ -325,13 +337,11 @@ const startServer = async () => {
     });
 
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      
+      console.log(`[LOCAL DEV] Server running on port ${PORT}`);
       // Save the port to a file for the client to read
       const portInfoPath = path.join(__dirname, 'port.json');
       fs.writeFileSync(portInfoPath, JSON.stringify({ port: PORT }));
       console.log(`Port information saved to ${portInfoPath}`);
-      
       // Update client config with the new port
       updateClientConfig(PORT);
       console.log('Client configuration updated with the new port');
