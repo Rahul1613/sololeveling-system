@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: solo-leveling-system
+    env: node
+    buildCommand: |
+      cd client && npm install && npm run build && cd .. && npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      # Add your other environment variables here
+    autoDeploy: true
