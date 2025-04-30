@@ -27,4 +27,13 @@ router.put('/:questId', updateCustomQuest);
 // Delete a custom quest
 router.delete('/:questId', deleteCustomQuest);
 
+// Add a health check route for custom quests
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Custom quests routes are working properly',
+    timestamp: new Date().toISOString()
+  });
+});
+
 module.exports = router;

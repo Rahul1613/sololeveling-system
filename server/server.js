@@ -246,6 +246,11 @@ app.use('/api/verification', require('./routes/verification'));
 app.use('/api/notifications', require('./routes/notification'));
 app.use('/api/oauth', require('./routes/oauth'));
 
+// Add a direct route for custom-quests to redirect to the API endpoint
+app.get('/custom-quests', (req, res) => {
+  res.redirect('/api/custom-quests/public');
+});
+
 // Health check route
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'Server is running' });
